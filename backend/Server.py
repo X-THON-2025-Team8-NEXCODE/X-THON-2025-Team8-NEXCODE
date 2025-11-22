@@ -69,6 +69,26 @@ def debug_post_request():
 			"received_raw_body": raw_data,
 			"parsing_error": str(e)
 		}), 400
+  
+@app.route('/api/buy', methods=['POST'])
+def buy():
+	data = request.get_json()
+	user_id = data.get("user_id")
+	merchant = data.get("merchant")
+	category = data.get("category")
+	price = data.get("price")
+	hour = data.get("hour")
+	sentiment = data.get("sentiment")
+	regret_flag = data.get("regret_flag")
+	created_at = data.get("created_at")
+	
+	try:
+		create_expenses_table(user_id)
+		insert_expenses_data(user_id, merchant, category, price, hour, sentiment, regret_flag, created_at)
+		
+		return jsonify({"status":"success","message":"구매 내역이 성공적으로 기록되었습니다."})
+	except Exception as e:
+		return jsonify({"status":"fail","message":f"구매 내역 기록 중 에러 발생: {str(e)}"})
 
 @app.route('/api/ai', methods=['POST'])
 def ask():
