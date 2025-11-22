@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 소비 코치 API 테스트</title>
+    <!-- Tailwind CSS (스타일용) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+        <h1 class="text-2xl font-bold text-center mb-6 text-indigo-600">🤖 AI 소비 코치 테스트</h1>
+        
+        <form id="aiForm" class="space-y-4">
+            <!-- 상품명 -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">상품명 (item)</label>
+                <input type="text" id="item" placeholder="예: 야식 치킨" value="야식 치킨"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <!-- 가격 -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">가격 (price)</label>
+                <input type="number" id="price" placeholder="예: 20000" value="20000"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <!-- 카테고리 -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">카테고리 (category)</label>
+                <select id="category" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="식비">식비</option>
+                    <option value="패션">패션</option>
+                    <option value="교통">교통</option>
+                    <option value="여가">여가</option>
+                    <option value="기타">기타</option>
+                </select>
+            </div>
+
+            <!-- 시간 -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">현재 시간 (hour)</label>
+                <input type="number" id="hour" min="0" max="23" value="23"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <!-- 전송 버튼 -->
+            <button type="submit" 
+                class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200 font-bold flex justify-center items-center">
+                <span id="btnText">AI에게 물어보기</span>
+                <!-- 로딩 스피너 (숨김 상태) -->
+                <svg id="spinner" class="hidden animate-spin ml-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </button>
+        </form>
+
+        <!-- 결과 표시 영역 -->
+        <div id="resultArea" class="mt-6 hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+            <h3 class="font-bold text-lg mb-2">📝 분석 결과</h3>
+            <p id="decisionText" class="text-sm font-bold text-blue-600 mb-1"></p>
+            <p id="askText" class="text-gray-700 text-sm leading-relaxed"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('aiForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // 새로고침 방지
+
+            // UI 상태 변경 (로딩 중)
+            const btn = document.querySelector('button');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+            const resultArea = document.getElementById('resultArea');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+            btnText.innerText = "분석 중...";
+            spinner.classList.remove('hidden');
+            resultArea.classList.add('hidden');
+
+            // 입력값 가져오기
+            const payload = {
+                item: document.getElementById('item').value,
+                price: parseInt(document.getElementById('price').value),
+                category: document.getElementById('category').value,
+                hour: parseInt(document.getElementById('hour').value)
+            };
+
+            try {
+                // 파이썬 서버로 POST 요청 (주소가 다르면 수정하세요)
+                const response = await fetch('http://127.0.0.1:5000/api/ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                // 결과 표시
+                resultArea.classList.remove('hidden');
+                
+                if (data.status === "success") {
+                    // 성공 시
+                    document.getElementById('decisionText').innerText = data.decision;
+                    document.getElementById('askText').innerText = data.ask;
+                    resultArea.className = "mt-6 p-4 rounded-md bg-green-50 border border-green-200";
+                    document.getElementById('decisionText').className = "font-bold text-green-700 mb-2";
+                } else {
+                    // 실패 시
+                    document.getElementById('decisionText').innerText = "오류 발생";
+                    document.getElementById('askText').innerText = data.message;
+                    resultArea.className = "mt-6 p-4 rounded-md bg-red-50 border border-red-200";
+                    document.getElementById('decisionText').className = "font-bold text-red-700 mb-2";
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultArea.classList.remove('hidden');
+                document.getElementById('decisionText').innerText = "네트워크 오류";
+                document.getElementById('askText').innerText = "서버가 켜져 있는지 확인해주세요.\n" + error;
+                resultArea.className = "mt-6 p-4 rounded-md bg-red-50 border border-red-200";
+            } finally {
+                // UI 상태 복구
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+                btnText.innerText = "AI에게 물어보기";
+                spinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
