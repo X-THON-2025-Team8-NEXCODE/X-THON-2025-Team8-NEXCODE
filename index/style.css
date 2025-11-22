@@ -164,8 +164,9 @@ body {
   transition: stroke-dashoffset 1s ease;
 }
 
+/* 안쪽 동그라미 (씨앗 + 레벨) */
 .progress-inner {
-  position: absolute;      
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -186,15 +187,17 @@ body {
   justify-content: center;
 }
 
+/* 씨앗 이미지: 200px 유지 */
 .mascot-img {
   width: 200px;
   height: 200px;
   object-fit: contain;
 }
 
+/* 레벨 텍스트: 진행률 원 안쪽 하단에 고정 */
 .level-text {
   position: absolute;
-  bottom: 10px;        
+  bottom: 10px;  /* ← 여기 숫자 바꾸면 레벨 위치만 조절됨 */
   left: 50%;
   transform: translateX(-50%);
   font-weight: 700;
@@ -285,10 +288,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 800;
-  color: #15803d;
   flex-shrink: 0;
+}
+
+/* 🔹 결제 내역 아이콘 안에 들어가는 이미지 스타일 */
+.history-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
 }
 
 .history-text {
