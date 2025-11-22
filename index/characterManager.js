@@ -7,6 +7,34 @@ const CHAR_IMAGES = {
   5: "./image/Lv5smile.png"     // 5단계: 숲 (이미지명 수정하세요)
 };
 
+const CHAR_EMOTIONS = {
+  1: {
+    default: "./image/seedwow.png", // 입 벌린 표정 (기본/보류)
+    sad:     "./image/seedsad.png",       // 슬픈 표정 (후회)
+    happy:   "./image/seed.png"      // 미소 표정 (만족)
+  },
+  2: {
+    default: "./image/Lv2wow.png",
+    sad:     "./image/Lv3sad.png",
+    happy:   "./image/Lv2smile.png"
+  },
+  3: {
+    default: "./image/Lv3wow.png",
+    sad:     "./image/Lv3sad.png",
+    happy:   "./image/Lv3smile.png"
+  },
+  4: {
+    default: "./image/Lv4wow.png",
+    sad:     "./image/Lv4sad.png",
+    happy:   "./image/Lv4smile.png"
+  },
+  5: {
+    default: "./image/Lv5wow.png",
+    sad:     "./image/Lv5sad.png",
+    happy:   "./image/Lv5smile.png"
+  }
+};
+
 // 2. 현재 레벨 가져오기 (저장된 게 없으면 기본 1)
 function getCurrentLevel() {
   const savedLevel = localStorage.getItem('userLevel');

@@ -5,9 +5,7 @@
   <title>Buy-bye 소비 상세</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <!-- 폰트 -->
-  <link rel="stylesheet" as="style" crossorigin
-        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
   <style>
     /* === 1. 기본 설정 === */
@@ -63,11 +61,11 @@
       font-weight: 600;
     }
 
-    /* === 3. 캐릭터 === */
+    /* === 3. 캐릭터 및 타이틀 === */
     .character-section {
       text-align: center;
       margin-top: -10px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
     .char-img {
       width: 120px;
@@ -75,43 +73,11 @@
       object-fit: cover;
       filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
     }
-
-    /* === 말풍선 === */
-    .speech {
-      display: flex;
-      justify-content: center;
-      padding: 0 10px;
-      margin-bottom: 16px;
-    }
-
-    .speech-bubble {
-      position: relative;
-      max-width: 100%;
-      background: #ffffff;
-      border-radius: 18px;
-      padding: 10px 16px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    }
-
-    .speech-bubble::before {
-      content: "";
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 0 10px 10px 10px;
-      border-style: solid;
-      border-color: transparent transparent #ffffff transparent;
-      filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.05));
-    }
-
-    .typing-text {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #333;
-      line-height: 1.5;
-      min-height: 1.2em;
-      white-space: pre-line;
+    .page-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #000;
+      margin-top: 15px;
     }
 
     /* === 4. 메인 카드 === */
@@ -205,9 +171,9 @@
     }
     
     .arrow-icon {
-      width: 24px;
-      opacity: 0.3;
-      margin-bottom: 10px;
+        width: 24px;
+        opacity: 0.3;
+        margin-bottom: 10px;
     }
 
     .edit-btn {
@@ -229,7 +195,7 @@
 <body>
 
   <div class="app-frame">
-    <!-- 상단 아이콘들 -->
+    
     <div class="top-bar">
       <button class="icon-btn" onclick="location.href='index.html'">
         <img src="./image/home.png" class="icon-img" alt="홈">
@@ -242,28 +208,19 @@
       </button>
     </div>
 
-    <!-- 캐릭터 -->
     <div class="character-section">
       <img src="./image/seed.png" class="char-img" alt="캐릭터">
+      <div class="page-title">" 11월 1일의 소비 내역입니다. "</div>
     </div>
 
-    <!-- 말풍선 -->
-    <div class="speech">
-      <div class="speech-bubble">
-        <p id="typing-text" class="typing-text"></p>
-      </div>
-    </div>
-
-    <!-- 상세 카드 -->
     <div class="detail-card">
       <div class="card-date">2025년 11월 1일</div>
 
       <div class="expense-list" id="expenseList">
-        <!-- JS에서 렌더링 -->
-      </div>
+        </div>
 
       <div class="edit-area">
-        <img src="https://cdn-icons-png.flaticon.com/512/2985/2985150.png" class="arrow-icon" alt="arrow">
+        <img src="https://cdn-icons-png.flaticon.com/512/2985/2985150.png" class="arrow-icon">
         
         <button class="edit-btn" onclick="goToEvaluationPage()">
           <img src="./image/good.png" alt="edit">
@@ -275,58 +232,41 @@
   </div>
 
   <script>
-    // 1. URL에서 날짜 파라미터 읽기
-    const urlParams   = new URLSearchParams(window.location.search);
-    const yearParam   = urlParams.get('year');
-    const monthParam  = urlParams.get('month');
-    const dayParam    = urlParams.get('day');
+    const urlParams = new URLSearchParams(window.location.search);
+    const yearParam = urlParams.get('year');   // 예: 2025
+    const monthParam = urlParams.get('month'); // 예: 11
+    const dayParam = urlParams.get('day');     // 예: 15
 
-    // 말풍선 문구 기본값
-    let messageText = "오늘의 소비 내역입니다.";
-
+  // 가져온 날짜가 있으면 화면 글씨 바꾸기
     if (yearParam && monthParam && dayParam) {
-      messageText = `${monthParam}월 ${dayParam}일의 소비 내역입니다.`;
-
-      const cardDateEl = document.querySelector('.card-date');
-      if (cardDateEl) {
-        cardDateEl.innerText = `${yearParam}년 ${monthParam}월 ${dayParam}일`;
-      }
+    // 1. 캐릭터 말풍선 (" 11월 1일의 소비 내역입니다 ") 부분 수정
+      document.querySelector('.page-title').innerText = `" ${monthParam}월 ${dayParam}일의 소비 내역입니다. "`;
+    
+    // 2. 카드 헤더 (2025년 11월 1일) 부분 수정
+      document.querySelector('.card-date').innerText = `${yearParam}년 ${monthParam}월 ${dayParam}일`;
     }
-
-    // 2. 말풍선 타이핑 효과
-    const typingTarget = document.getElementById("typing-text");
-    let typingIndex = 0;
-
-    function typeStep() {
-      if (typingIndex <= messageText.length) {
-        typingTarget.textContent = messageText.slice(0, typingIndex);
-        typingIndex++;
-        setTimeout(typeStep, 60);
-      }
-    }
-
-    typeStep();
-
-    // 3. 하루 소비 내역 더미 데이터
+    // === 데이터 ===
     let expenses = [
-      { id: 1, brand: 'Mega',    logo: 'https://cdn-icons-png.flaticon.com/512/7520/7520466.png', price: '-3,900원',  desc: '메가커피 | 카카오뱅크',      status: 'none' },
-      { id: 2, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이',      status: 'bad'  },
-      { id: 3, brand: 'Baemin',  logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png',   price: '-14,000원', desc: '배달의 민족 | 페페로니 피자', status: 'none' },
-      { id: 4, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이',      status: 'bad'  },
-      { id: 5, brand: 'Baemin',  logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png',   price: '-14,000원', desc: '배달의 민족 | 치킨',          status: 'good' }
+      { id: 1, brand: 'Mega', logo: 'https://cdn-icons-png.flaticon.com/512/7520/7520466.png', price: '-3,900원', desc: '메가커피 | 카카오뱅크', status: 'none' },
+      { id: 2, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이', status: 'bad' },
+      { id: 3, brand: 'Baemin', logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png', price: '-14,000원', desc: '배달의 민족 | 페페로니피자', status: 'none' },
+      { id: 4, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이', status: 'bad' },
+      { id: 5, brand: 'Baemin', logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png', price: '-14,000원', desc: '배달의 민족 | 치킨', status: 'good' }
     ];
 
     let selectedIds = [];
     const listContainer = document.getElementById('expenseList');
 
+    // === 리스트 그리기 ===
     function renderList() {
-      listContainer.innerHTML = '';
+      listContainer.innerHTML = ''; 
 
       expenses.forEach(item => {
         let iconSrc = '';
-        if (item.status === 'good')      iconSrc = './image/greenTUp.png';
-        else if (item.status === 'bad') iconSrc = './image/redTDown.png';
-        else                            iconSrc = './image/postpone.png';
+        // 상태별 아이콘 이미지 설정
+        if (item.status === 'good') iconSrc = './image/greenTUp.png'; 
+        else if (item.status === 'bad') iconSrc = './image/redTDown.png'; 
+        else iconSrc = './image/postpone.png'; 
 
         const div = document.createElement('div');
         div.className = 'expense-item';
@@ -336,13 +276,13 @@
 
         div.innerHTML = `
           <div class="item-left">
-            <img src="${item.logo}" class="brand-logo" alt="logo">
+            <img src="${item.logo}" class="brand-logo">
             <div class="item-info">
               <div class="item-price">${item.price}</div>
               <div class="item-desc">${item.desc}</div>
             </div>
           </div>
-          <img src="${iconSrc}" class="status-icon" alt="status">
+          <img src="${iconSrc}" class="status-icon">
         `;
 
         div.onclick = () => toggleSelect(item.id);
@@ -350,26 +290,34 @@
       });
     }
 
+    // === 선택 토글 ===
     function toggleSelect(id) {
       if (selectedIds.includes(id)) {
         selectedIds = selectedIds.filter(sid => sid !== id);
       } else {
         selectedIds.push(id);
       }
-      renderList();
+      renderList(); 
     }
 
+    // === [중요] 평가 화면으로 이동 함수 ===
     function goToEvaluationPage() {
+      // 1. 선택 여부 확인
       if (selectedIds.length === 0) {
         alert("평가를 수정할 내역을 하나 이상 선택해주세요!");
         return;
       }
 
+      // 2. 선택한 ID들을 콤마로 연결 (예: "1,3,5")
       const idsParam = selectedIds.join(',');
-      location.href = `choose.html?ids=${idsParam}`;
+
+      // 3. 페이지 이동 (뒤에 ?ids=1,3 처럼 데이터를 붙여서 보냄)
+      // *만약 평가 페이지 파일명이 evaluation.html이 아니면 아래 이름을 수정하세요!*
+      location.href = `evaluation.html?ids=${idsParam}`;
     }
 
     renderList();
   </script>
+  <script src="characterManager.js"></script>
 </body>
 </html>

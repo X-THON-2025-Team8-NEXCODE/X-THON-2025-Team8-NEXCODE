@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="page">
-    <!-- 홈 버튼 -->
+    <!-- 홈 버튼 (.page 안에 있음, swipe와 동일 구조) -->
     <button class="home-btn" type="button" onclick="location.href='index.html'">
       <img src="image/home.png" alt="홈 아이콘" class="home-icon">
       <span class="home-label">홈 화면</span>
@@ -17,7 +17,7 @@
     <!-- 씨앗 캐릭터 -->
     <img src="image/seed.png" alt="캐릭터" class="mascot">
 
-    <!-- 말풍선 -->
+    <!-- 씨앗이 말하는 말풍선 + 타이핑 텍스트 -->
     <div class="question-wrap">
       <div class="speech-bubble">
         <span id="question-text" class="question-text"></span>
@@ -35,7 +35,7 @@
       </div>
     </div>
 
-    <!-- 엄지 아이콘 -->
+    <!-- 아래 엄지 아이콘 (왼쪽: 만족, 오른쪽: 후회) -->
     <div class="thumb-row">
       <div class="thumb thumb-left">
         <img src="image/tup.png" alt="만족한 소비" />
@@ -50,97 +50,69 @@
   </div>
 
   <script>
-    // ---------------------- 1. 데이터 정의 ----------------------
-    // swipe 화면에서 쓰는 소비 내역 (swipe.html과 동일한 구조로 사용 가능)
-    const swipeExpenses = [
-      { id: 0, title: "메가커피",     amount: 3900,  icon: "image/mgc.png" },
-      { id: 1, title: "메가커피",     amount: 4500,  icon: "image/mgc.png" },
-      { id: 2, title: "넷플릭스",     amount: 13500, icon: "image/netflix.png" },
-      { id: 3, title: "배달의 민족", amount: 22000, icon: "image/bmin.png" },
-      { id: 4, title: "배달의 민족", amount: 12000, icon: "image/bmin.png" },
-      { id: 5, title: "메가커피",     amount: 2800,  icon: "image/mgc.png" },
-      { id: 6, title: "넷플릭스",     amount: 9500,  icon: "image/netflix.png" }
-    ];
-
-    // calendarBuyList에서 보여주는 소비 내역과 "같은 금액"으로 맞춘 데이터
-    // (id는 calendarBuyList의 item.id와 동일하게 사용)
-    const calendarExpenses = [
-      { id: 1, title: "메가커피",     amount: 3900,  icon: "image/mgc.png" },   // -3,900원
-      { id: 2, title: "넷플릭스",     amount: 11700, icon: "image/netflix.png" }, // -11,700원
-      { id: 3, title: "배달의 민족", amount: 14000, icon: "image/bmin.png" },  // -14,000원
-      { id: 4, title: "넷플릭스",     amount: 11700, icon: "image/netflix.png" },
-      { id: 5, title: "배달의 민족", amount: 14000, icon: "image/bmin.png" }
+    // ---------- 더미 소비 데이터 ----------
+    const expenses = [
+      { id: 0, title: "메가커피", amount: 3900, detail: "메가커피 | 카카오뱅크", icon: "image/mgc.png" },
+      { id: 1, title: "메가커피", amount: 4500, detail: "저녁 아메리카노 | 카카오뱅크", icon: "image/mgc.png" },
+      { id: 2, title: "넷플릭스", amount: 13500, detail: "넷플릭스 | 체크카드", icon: "image/netflix.png" },
+      { id: 3, title: "배달의 민족", amount: 22000, detail: "페페로니 피자 P 세트 | 카카오페이", icon: "image/bmin.png" },
+      { id: 4, title: "배달의 민족", amount: 12000, detail: "야식 떡볶이 세트 | 카카오페이", icon: "image/bmin.png" },
+      { id: 5, title: "메가커피", amount: 2800, detail: "디카페인 라떼 | 카카오뱅크", icon: "image/mgc.png" },
+      { id: 6, title: "넷플릭스", amount: 9500, detail: "넷플릭스 모바일 | 체크카드", icon: "image/netflix.png" },
     ];
 
     const formatAmount = (n) =>
       "-" + n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
 
-    // ---------------------- 2. URL 파라미터 처리 ----------------------
+    // ---------- URL 파라미터에서 평가 대상 리스트 읽기 ----------
     const params = new URLSearchParams(window.location.search);
+    const listParam = params.get("list");
+    const itemParam = params.get("item");
 
-    // swipe.html → choose.html?item=0&list=0,3,5
-    const listParam = params.get("list");  // swipe에서 선택된 인덱스들
-
-    // calendarBuyList.html → choose.html?ids=1,3,5
-    const idsParam  = params.get("ids");   // calendar에서 선택된 id들
-
-    function parseToIntArray(str) {
-      if (!str) return [];
-      return str
-        .split(",")
-        .map(v => parseInt(v, 10))
-        .filter(v => !Number.isNaN(v));
-    }
-
-    // 💡 실제로 화면에 보여 줄 평가 대상 배열
-    let evalExpenses = [];
+    let indicesToJudge = [];
 
     if (listParam) {
-      // ✅ swipe에서 온 경우: list를 swipeExpenses의 index로 사용
-      const indices = parseToIntArray(listParam)
-        .filter(idx => idx >= 0 && idx < swipeExpenses.length);
-      evalExpenses = indices.map(idx => swipeExpenses[idx]);
-    } else if (idsParam) {
-      // ✅ calendarBuyList에서 온 경우: ids를 calendarExpenses의 id로 사용
-      const ids = parseToIntArray(idsParam);
-      evalExpenses = ids
-        .map(id => calendarExpenses.find(e => e.id === id))
-        .filter(Boolean);
-    } else {
-      // 둘 다 없으면 그냥 swipe 전체 평가 (fallback)
-      evalExpenses = [...swipeExpenses];
+      indicesToJudge = listParam
+        .split(",")
+        .map((v) => parseInt(v, 10))
+        .filter((v) => !Number.isNaN(v) && v >= 0 && v < expenses.length);
     }
 
-    // 혹시라도 evalExpenses가 비어 있으면 안전하게 swipe 전체로
-    if (evalExpenses.length === 0) {
-      evalExpenses = [...swipeExpenses];
+    if (indicesToJudge.length === 0 && itemParam !== null) {
+      const idx = parseInt(itemParam, 10);
+      if (!Number.isNaN(idx) && idx >= 0 && idx < expenses.length) {
+        indicesToJudge = [idx];
+      }
     }
 
-    // ---------------------- 3. DOM 요소 ----------------------
-    const cardEl     = document.getElementById("evaluate-card");
-    const iconEl     = document.getElementById("expense-icon");
-    const titleEl    = document.getElementById("expense-title");
-    const amountEl   = document.getElementById("expense-amount");
-    const dotsEl     = document.getElementById("dots");
+    if (indicesToJudge.length === 0) {
+      // 혹시 파라미터 없으면 전체 평가
+      indicesToJudge = expenses.map((_, i) => i);
+    }
+
+    const cardEl = document.getElementById("evaluate-card");
+    const iconEl = document.getElementById("expense-icon");
+    const titleEl = document.getElementById("expense-title");
+    const amountEl = document.getElementById("expense-amount");
+    const dotsEl = document.getElementById("dots");
     const thumbRowEl = document.querySelector(".thumb-row");
     const questionEl = document.getElementById("question-text");
 
     let currentPos = 0;
-    const results = []; // { title, amount, decision }
+    const results = []; // { expenseIndex, decision: 'satisfied' | 'regret' | 'hold' }
 
-    // ---------------------- 4. 페이지 인디케이터 ----------------------
     function renderDots() {
       dotsEl.innerHTML = "";
-      evalExpenses.forEach((_, i) => {
+      indicesToJudge.forEach((_, i) => {
         const dot = document.createElement("span");
         dot.className = "dot" + (i === currentPos ? " active" : "");
         dotsEl.appendChild(dot);
       });
     }
 
-    // ---------------------- 5. 현재 카드 표시 ----------------------
     function showCurrentExpense() {
-      const exp = evalExpenses[currentPos];
+      const expenseIndex = indicesToJudge[currentPos];
+      const exp = expenses[expenseIndex];
 
       iconEl.src = exp.icon;
       iconEl.alt = exp.title + " 아이콘";
@@ -149,47 +121,43 @@
 
       cardEl.style.transform = "translate(0, 0)";
       cardEl.style.opacity = "1";
-
       renderDots();
     }
 
-    // ---------------------- 6. 평가 완료 처리 ----------------------
     function finishAll() {
       cardEl.classList.add("hidden");
       thumbRowEl.classList.add("hidden");
       dotsEl.classList.add("hidden");
 
+      // 씨앗 말풍선 문구 변경
       questionEl.textContent = "평가를 완료했습니다!";
 
-      console.log("평가 결과:", results);
+      console.log("swipe results:", results);
 
+      // 잠깐 보여준 뒤 홈(index.html)으로 이동
       setTimeout(() => {
         window.location.href = "index.html";
       }, 1500);
     }
 
-    // ---------------------- 7. 다음 카드로 이동 ----------------------
     function goNext(decision) {
-      const exp = evalExpenses[currentPos];
-      results.push({
-        title: exp.title,
-        amount: exp.amount,
-        decision
-      });
+      const expenseIndex = indicesToJudge[currentPos];
+      results.push({ expenseIndex, decision });
 
       currentPos += 1;
-      if (currentPos >= evalExpenses.length) {
+      if (currentPos >= indicesToJudge.length) {
         finishAll();
         return;
       }
 
+      dragDirection = null;
       cardEl.classList.remove("transition");
       cardEl.style.transform = "translate(0, 0)";
       cardEl.style.opacity = "1";
       showCurrentExpense();
     }
 
-    // ---------------------- 8. 스와이프 제스처 ----------------------
+    // ---------- 스와이프 제스처 처리 ----------
     let dragging = false;
     let startX = 0;
     let startY = 0;
@@ -197,9 +165,9 @@
     let currentY = 0;
     let dragDirection = null; // 'horizontal' | 'vertical' | null
 
-    const THRESHOLD_X = 80;
-    const THRESHOLD_Y = 40;
-    const MAX_DIST    = 160;
+    const THRESHOLD_X = 80; // 좌우 스와이프 최소 거리
+    const THRESHOLD_Y = 40; // 아래 스와이프 최소 거리
+    const MAX_DIST = 160;   // 흐려지는 기준 거리
 
     function pointerDown(e) {
       dragging = true;
@@ -215,7 +183,6 @@
 
     function pointerMove(e) {
       if (!dragging) return;
-
       const point = e.touches ? e.touches[0] : e;
       const dx = point.clientX - startX;
       const dy = point.clientY - startY;
@@ -320,7 +287,7 @@
     window.addEventListener("mouseup", pointerUp);
     window.addEventListener("touchend", pointerUp);
 
-    // ---------------------- 9. "이 소비는 어땠나요?" 타이핑 효과 ----------------------
+    // ---------- "이 소비는 어땠나요?" 타이핑 효과 ----------
     const questionMessage = "이 소비는 어땠나요?";
     let qIndex = 0;
 
@@ -336,5 +303,6 @@
     showCurrentExpense();
     typeQuestion();
   </script>
+  <script src="characterManager.js"></script>
 </body>
 </html>
