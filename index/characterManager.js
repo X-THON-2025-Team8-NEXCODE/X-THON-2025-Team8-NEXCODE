@@ -30,7 +30,7 @@ function updateCharacterImage() {
   // 화면에서 캐릭터 이미지 태그들을 다 찾아서 바꿔치기
   const charImages = document.querySelectorAll('.character-img, .char-img, .mascot-img');
   
-  charImages.forEach(img => {
+  charImages.forEach(img => {0
     img.src = imageUrl;
   });
 
