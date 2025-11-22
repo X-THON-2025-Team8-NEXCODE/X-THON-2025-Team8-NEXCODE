@@ -4,7 +4,7 @@
   padding: 0;
 }
 
-/* 🔹 전체 배경 */
+/* 🔹 전체 배경 = index/image/indexbg.png */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR",
     system-ui, sans-serif;
@@ -36,6 +36,9 @@ body {
   justify-content: flex-end;
   gap: 12px;
   margin-bottom: 8px;
+
+  /* 🔹 여기 추가: 헤더 아래로 48px 내리기 */
+  margin-top: 48px;
 }
 
 .icon-btn {
@@ -59,7 +62,7 @@ body {
   display: block;
 }
 
-/* 🔹 오늘의 지출 블록 */
+/* 🔹 오늘의 지출 블록: 부드럽게 퍼지는 연두 안개 느낌 */
 .today-section {
   margin-top: 8px;
   margin-bottom: 20px;
@@ -131,7 +134,7 @@ body {
   color: #000000;
 }
 
-/* 🔹 프로그레스 링 전체 컨테이너 */
+/* 🔹 프로그레스 링 */
 .mascot-section {
   display: flex;
   justify-content: center;
@@ -139,37 +142,43 @@ body {
 }
 
 .progress-ring {
-  position: relative;
   width: 260px;
   height: 260px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    #e5f9f0 0deg,
+    #d1f5e3 60deg,
+    #bcead8 120deg,
+    #edf2f7 120deg,
+    #edf2f7 360deg
+  );
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 /* SVG 링 스타일 */
 .ring-bg {
   fill: none;
-  stroke: #e5f4ed;
-  stroke-width: 18;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 16;
 }
 
 .ring-progress {
   fill: none;
   stroke: url(#grad-progress);
-  stroke-width: 18;
+  stroke-width: 16;
   stroke-linecap: round;
   transform: rotate(-90deg);
   transform-origin: 50% 50%;
-  transition: stroke-dashoffset 1s ease;
+  transition: stroke-dashoffset 0.6s ease-out;
 }
 
-/* 안쪽 동그라미 (씨앗 + 레벨) */
+/* 안쪽 동그라미 */
 .progress-inner {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   width: 200px;
   height: 200px;
   border-radius: 50%;
@@ -183,25 +192,22 @@ body {
     inset 0 0 10px rgba(0, 0, 0, 0.04),
     0 10px 18px rgba(0, 0, 0, 0.06);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding-top: 4px;
 }
 
-/* 씨앗 이미지: 200px 유지 */
 .mascot-img {
   width: 200px;
   height: 200px;
   object-fit: contain;
+  margin-bottom: 3px;
 }
 
-/* 레벨 텍스트: 진행률 원 안쪽 하단에 고정 */
 .level-text {
-  position: absolute;
-  bottom: 10px;  /* ← 여기 숫자 바꾸면 레벨 위치만 조절됨 */
-  left: 50%;
-  transform: translateX(-50%);
   font-weight: 700;
-  font-size: 17px;
+  font-size: 18px;
   color: #374151;
 }
 
@@ -291,12 +297,10 @@ body {
   flex-shrink: 0;
 }
 
-/* 🔹 결제 내역 아이콘 안에 들어가는 이미지 스타일 */
 .history-icon img {
-  width: 100%;
-  height: 100%;
-  border-radius: 999px;
-  object-fit: cover;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .history-text {
