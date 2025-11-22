@@ -100,7 +100,7 @@
           <span class="action-label">소비 평가</span>
         </button>
         <button class="action-item" onclick="location.href='aiRecommand.html'">
-          <img src="image/home.png" alt="AI 추천 아이콘" />
+          <img src="image/ai.png" alt="AI 추천 아이콘" /> 
           <span class="action-label">AI 소비 추천</span>
         </button>
       </div>
@@ -110,157 +110,203 @@
     <section class="history-card">
       <div class="history-header">지출 내역</div>
       <div class="history-list" id="history-list"></div>
-      <div class="history-more">더 보기</div>
+      <div class="history-more" id="history-more">더 보기</div>
     </section>
   </div>
 
   <script>
-    const API_BASE_URL = 'https://x-thon.nexcode.kr:16010';
+  const API_BASE_URL = 'https://x-thon.nexcode.kr:16010';
 
-    const historyListEl = document.getElementById("history-list");
-    const todayAmountEl = document.getElementById("today-amount");
+  const historyListEl = document.getElementById("history-list");
+  const todayAmountEl = document.getElementById("today-amount");
+  const historyMoreEl = document.getElementById("history-more");
 
-    const formatCurrency = (n) =>
-      n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
-      
-    async function checkLoginStatus() {
-        try {
-            // credentials: 'include' 필수 (쿠키 전송)
-            const response = await fetch(`${API_BASE_URL}/api/status`, {
-                method: 'GET',
-                credentials: 'include'
-            });
-            const data = await response.json();
+  const formatCurrency = (n) =>
+    n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
 
-            if (data.logged_in === true) {
-                console.log("로그인 확인됨. User ID:", data.user_id);
-                localStorage.setItem('user_id', data.user_id);
-                
-                if (data.nickname) {
-                    localStorage.setItem('nickname', data.nickname);
-                    const todayLabel = document.querySelector('.today-label');
-                    if (todayLabel) {
-                        todayLabel.textContent = `${data.nickname}님의 오늘의 지출`;
-                    }
-                }
-                
-                document.body.style.display = 'block';
-                init(data.user_id); 
-            } else {
-                console.warn("비로그인 상태. 리다이렉트...");
-                window.location.href = "login.html";
-            }
-        } catch (error) {
-            console.error("서버 연결 실패:", error);
-            window.location.href = "login.html";
+  //  전체 지출 내역을 저장해 둘 배열
+  let allExpenses = [];
+  //  false = 4개만, true = 전체
+  let showingAll = false;
+
+  // ---------------- 로그인 체크 ----------------
+  async function checkLoginStatus() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/status`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      if (data.logged_in === true) {
+        console.log("로그인 확인됨. User ID:", data.user_id);
+        localStorage.setItem('user_id', data.user_id);
+
+        if (data.nickname) {
+          localStorage.setItem('nickname', data.nickname);
+          const todayLabel = document.querySelector('.today-label');
+          if (todayLabel) {
+            todayLabel.textContent = `${data.nickname}님의 오늘의 지출`;
+          }
         }
+
+        document.body.style.display = 'block';
+        init(data.user_id);
+      } else {
+        console.warn("비로그인 상태. 리다이렉트...");
+        window.location.href = "login.html";
+      }
+    } catch (error) {
+      console.error("서버 연결 실패:", error);
+      window.location.href = "login.html";
+    }
+  }
+
+  // ---------------- 지출 리스트 렌더링 ----------------
+  function renderHistory() {
+    historyListEl.innerHTML = "";
+
+    if (!allExpenses || allExpenses.length === 0) {
+      historyListEl.innerHTML =
+        "<div style='padding:20px; text-align:center; color:#888;'>오늘의 지출 내역이 없습니다.</div>";
+      historyMoreEl.style.display = "none";
+      return;
     }
 
+    // 보여줄 목록: 4개 또는 전체
+    const listToShow = showingAll ? allExpenses : allExpenses.slice(0, 4);
 
-	async function loadExpenses(userId) {
-		try {
-	      const response = await fetch(`${API_BASE_URL}/api/expenses`, {
-	        method: "POST",
-	        credentials: "include", //  쿠키 포함 필수
+    listToShow.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "history-item";
+
+      // TODO: 나중에 가맹점별 아이콘 분기하고 싶으면 여기서 분기
+      let iconSrc = "image/bmin.png";
+
+      row.innerHTML = `
+        <div class="history-left">
+          <div class="history-icon">
+            <img src="${iconSrc}" alt="${item.merchant} 아이콘" />
+          </div>
+          <div class="history-text">
+            <div class="history-title-row">
+              <span class="history-merchant">${item.merchant}</span>
+              <span class="history-tag">${item.category}</span>
+            </div>
+            <div class="history-sub">${item.price}</div>
+          </div>
+        </div>
+        <div class="history-right">
+          <span class="history-amount">-${formatCurrency(item.price)}</span>
+        </div>
+      `;
+      historyListEl.appendChild(row);
+    });
+
+    //  더 보기 / 접기 버튼 상태
+    if (allExpenses.length > 4) {
+      historyMoreEl.style.display = "block";
+      historyMoreEl.textContent = showingAll ? "접기" : "더 보기";
+    } else {
+      historyMoreEl.style.display = "none";
+    }
+  }
+
+	function getTodayDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+  async function loadExpenses(userId) {
+      try {
+        const todayDate = getTodayDate();
+        console.log("요청 날짜:", todayDate);
+
+        const response = await fetch(`${API_BASE_URL}/api/expenses`, {
+          method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({ 
-          	  user_id: userId,
-              date: new Date().toISOString().split('T')[0] 
+              user_id: userId,
+              date: todayDate
           })
         });
-	      const result = await response.json();
-	
-	      // 렌더링 + 합계 계산
-	      let total = 0;
-	      
-	      const expensesList = result.data || [];
+        
+        const result = await response.json();
 
-        historyListEl.innerHTML = ""; // 리스트 초기화
+        let total = 0;
+        allExpenses = result.data || [];
 
-        if (expensesList.length === 0) {
-            historyListEl.innerHTML = "<div style='padding:20px; text-align:center; color:#888;'>오늘의 지출 내역이 없습니다.</div>";
-        }
-	      
-	      expensesList.forEach((item) => {
-	        total += item.price;
-	
-	        const row = document.createElement("div");
-	        row.className = "history-item";
-	        
-	        let iconSrc = 'image/bmin.png'
-	
-	        row.innerHTML = `
-	          <div class="history-left">
-	            <div class="history-icon">
-	              <img src="${iconSrc}" alt="${item.merchant} 아이콘" />
-	            </div>
-	            <div class="history-text">
-	              <div class="history-title-row">
-	                <span class="history-merchant">${item.merchant}</span>
-	                <span class="history-tag">${item.category}</span>
-	              </div>
-	              <div class="history-sub">${item.price}</div>
-	            </div>
-	          </div>
-	          <div class="history-right">
-	            <span class="history-amount">-${formatCurrency(item.price)}</span>
-	          </div>
-	        `;
-	
-	        historyListEl.appendChild(row);
-	      });
-	      return total
-	    } catch (error) {
-	      console.error("지출 내역을 불러오는 중 오류 발생:", error);
-	      return -1
-	    }
-	}
+        allExpenses.forEach((item) => {
+          total += item.price;
+        });
 
-	async function init(userId) {
-	    const totalAmount = await loadExpenses(userId);
+        showingAll = false;
+        renderHistory();
 
-	    // 오늘의 지출 = 합계
-	    todayAmountEl.textContent = formatCurrency(totalAmount);
-	
-	    // --------------------- 진행률 게이지 (원형 링) ---------------------
-	    const circle = document.getElementById("progress-circle");
-	    const radius = circle.r.baseVal.value;
-	    const circumference = 2 * Math.PI * radius;
-	
-	    circle.style.strokeDasharray = `${circumference}`;
-	    circle.style.strokeDashoffset = `${circumference}`;
-	
-	    // 예시: 오늘 예산 50,000원 기준으로 진행률 계산
-	    const DAILY_BUDGET = 50000;
-	    const progress = Math.max(
-	      0,
-	      Math.min(100, Math.round((totalAmount / DAILY_BUDGET) * 100))
-	    );
+        return total;
+      } catch (error) {
+        console.error("지출 내역을 불러오는 중 오류 발생:", error);
+        return 0;
+      }
+    }
 
-	    function setProgress(percent) {
-	      const offset = circumference - (percent / 100) * circumference;
-	      circle.style.strokeDashoffset = offset;
-	    }
-	
-	    // 살짝 딜레이 두고 애니메이션
-	    setTimeout(() => setProgress(progress), 300);
-	}
-	
-	window.onload = checkLoginStatus;
+  // ---------------- 초기화 (합계 + 링 진행률) ----------------
+  async function init(userId) {
+    const totalAmount = await loadExpenses(userId);
+    if (totalAmount >= 0) {
+      todayAmountEl.textContent = formatCurrency(totalAmount);
+    } else {
+      todayAmountEl.textContent = "0원";
+    }
 
-    document
-      .getElementById("refresh-btn")
-      .addEventListener("click", () => location.reload());
+    // 진행률 원형 링 계산
+    const circle = document.getElementById("progress-circle");
+    const radius = circle.r.baseVal.value;
+    const circumference = 2 * Math.PI * radius;
 
-    // 소비 평가 버튼 → swipe.html 이동
-    document
-      .getElementById("review-button")
-      .addEventListener("click", () => {
-        window.location.href = "swipe.html";
-      });
-  </script>
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+
+    const DAILY_BUDGET = 50000;
+    const progress = Math.max(
+      0,
+      Math.min(100, Math.round((totalAmount / DAILY_BUDGET) * 100))
+    );
+
+    function setProgress(percent) {
+      const offset = circumference - (percent / 100) * circumference;
+      circle.style.strokeDashoffset = offset;
+    }
+
+    setTimeout(() => setProgress(progress), 300);
+  }
+
+  // ---------------- 이벤트 바인딩 ----------------
+  window.onload = checkLoginStatus;
+
+  document
+    .getElementById("refresh-btn")
+    .addEventListener("click", () => location.reload());
+
+  document
+    .getElementById("review-button")
+    .addEventListener("click", () => {
+      window.location.href = "swipe.html";
+    });
+
+  //  더 보기 / 접기 토글
+  historyMoreEl.addEventListener("click", () => {
+    showingAll = !showingAll;  // false → true → false → ...
+    renderHistory();
+  });
+</script>
+
 </body>
 </html>
 
