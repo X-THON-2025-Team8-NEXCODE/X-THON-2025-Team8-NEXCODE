@@ -109,7 +109,7 @@
   </div>
 
   <script>
-    const API_BASE_URL = 'http://x-thon.nexcode.kr:16010';
+    const API_BASE_URL = 'https://x-thon.nexcode.kr:16010';
 
     const historyListEl = document.getElementById("history-list");
     const todayAmountEl = document.getElementById("today-amount");
@@ -117,74 +117,94 @@
     const formatCurrency = (n) =>
       n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
 
+    function getTodayDateString() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/expenses`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ user_id: 1, date: new Date().toISOString().split('T')[0] })
-      });
-      const expenses = await response.json();
 
-      // 렌더링 + 합계 계산
-      let total = 0;
-      expenses.forEach((item) => {
-        total += item.amount;
-
-        const row = document.createElement("div");
-        row.className = "history-item";
-
-        row.innerHTML = `
-          <div class="history-left">
-            <div class="history-icon">
-              <img src="${item.iconSrc}" alt="${item.title} 아이콘" />
-            </div>
-            <div class="history-text">
-              <div class="history-title-row">
-                <span class="history-merchant">${item.title}</span>
-                <span class="history-tag">${item.tag}</span>
+    async function loadExpenses() {
+      try {
+          const response = await fetch(`${API_BASE_URL}/api/expenses`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ user_id: 'hosik', date: getTodayDateString() })
+          });
+          const expenses = await response.json();
+    
+          // 렌더링 + 합계 계산
+          let total = 0;
+          expenses.data.forEach((item) => {
+            total += item.price;
+    
+            const row = document.createElement("div");
+            row.className = "history-item";
+            
+            let iconSrc = 'image/bmin.png'
+    
+            row.innerHTML = `
+              <div class="history-left">
+                <div class="history-icon">
+                  <img src="${iconSrc}" alt="${item.merchant} 아이콘" />
+                </div>
+                <div class="history-text">
+                  <div class="history-title-row">
+                    <span class="history-merchant">${item.merchant}</span>
+                    <span class="history-tag">${item.category}</span>
+                  </div>
+                  <div class="history-sub">${item.price}</div>
+                </div>
               </div>
-              <div class="history-sub">${item.subtitle}</div>
-            </div>
-          </div>
-          <div class="history-right">
-            <span class="history-amount">-${formatCurrency(item.amount)}</span>
-          </div>
-        `;
-
-        historyListEl.appendChild(row);
-      });
-    } catch (error) {
-      console.error("지출 내역을 불러오는 중 오류 발생:", error);
+              <div class="history-right">
+                <span class="history-amount">-${formatCurrency(item.price)}</span>
+              </div>
+            `;
+    
+            historyListEl.appendChild(row);
+          });
+          return total
+        } catch (error) {
+          console.error("지출 내역을 불러오는 중 오류 발생:", error);
+          return -1
+        }
     }
 
-    // 오늘의 지출 = 합계
-    todayAmountEl.textContent = formatCurrency(total);
+    async function init() {
+        const totalAmount = await loadExpenses();
 
-    // --------------------- 진행률 게이지 (원형 링) ---------------------
-    const circle = document.getElementById("progress-circle");
-    const radius = circle.r.baseVal.value;
-    const circumference = 2 * Math.PI * radius;
+        // 오늘의 지출 = 합계
+        todayAmountEl.textContent = formatCurrency(totalAmount);
+    
+        // --------------------- 진행률 게이지 (원형 링) ---------------------
+        const circle = document.getElementById("progress-circle");
+        const radius = circle.r.baseVal.value;
+        const circumference = 2 * Math.PI * radius;
+    
+        circle.style.strokeDasharray = `${circumference}`;
+        circle.style.strokeDashoffset = `${circumference}`;
+    
+        // 예시: 오늘 예산 50,000원 기준으로 진행률 계산
+        const DAILY_BUDGET = 50000;
+        const progress = Math.max(
+          0,
+          Math.min(100, Math.round((totalAmount / DAILY_BUDGET) * 100))
+        );
 
-    circle.style.strokeDasharray = `${circumference}`;
-    circle.style.strokeDashoffset = `${circumference}`;
-
-    // 예시: 오늘 예산 50,000원 기준으로 진행률 계산
-    const DAILY_BUDGET = 50000;
-    const progress = Math.max(
-      0,
-      Math.min(100, Math.round((total / DAILY_BUDGET) * 100))
-    );
-
-    function setProgress(percent) {
-      const offset = circumference - (percent / 100) * circumference;
-      circle.style.strokeDashoffset = offset;
+        function setProgress(percent) {
+          const offset = circumference - (percent / 100) * circumference;
+          circle.style.strokeDashoffset = offset;
+        }
+    
+        // 살짝 딜레이 두고 애니메이션
+        setTimeout(() => setProgress(progress), 300);
     }
-
-    // 살짝 딜레이 두고 애니메이션
-    setTimeout(() => setProgress(progress), 300);
+    
+    init();
 
     // --------------------- 새로고침 버튼 ---------------------
     document
