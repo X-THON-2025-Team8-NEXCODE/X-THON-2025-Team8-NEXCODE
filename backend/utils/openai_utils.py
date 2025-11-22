@@ -161,3 +161,36 @@ def ask_ai(item, price, category, hour):
     result = ask_ai_coach(question_item, question_price, question_category, question_hour)
     
     return result
+
+def classify_category(text,):
+    client = OpenAI(api_key=API_KEY)
+
+    system_prompt = """
+    #역할
+    당신은 결제 내역을 분석하여 지정된 카테고리로 분류하는 정확한 AI입니다.
+    입력된 텍스트를 분석하여 아래 5가지 카테고리 중 가장 적절한 하나를 선택하세요.
+
+    #분류 기준 (Category List)
+    식비: 식당, 카페, 술집, 배달앱, 편의점 음식 등
+    교통: 택시, 버스, 지하철, 기차, 주유소, 킥보드 등
+    여가: 영화, 넷플릭스, PC방, 노래방, 여행, 숙박, 공연 등
+    패션: 의류, 신발, 가방, 액세서리, 미용실, 화장품 등
+    기타: 위 4가지에 해당하지 않는 모든 내역 (송금, 의료, 교육, 전자제품 등)
+
+    #출력 형식
+    설명이나 부가적인 말 없이 오직 '카테고리명' 단어 하나만 출력하세요.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": text}
+            ],
+            temperature=0
+        )
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        return f"Error: {e}"
