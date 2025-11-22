@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>소비 평가 선택</title>
+  <!-- 반드시 swipe.css 로 연결 -->
+  <link rel="stylesheet" href="swipe.css">
+</head>
+<body>
+  <div class="page">
+    <!-- 홈 버튼 (.page 안에 있음) -->
+    <button class="home-btn" type="button" onclick="location.href='index.html'">
+      <img src="image/home.png" alt="홈 아이콘" class="home-icon">
+      <span class="home-label">홈 화면</span>
+    </button>
+
+    <!-- 씨앗 캐릭터 -->
+    <img src="image/seed.png" alt="캐릭터" class="mascot">
+
+    <!-- 씨앗이 말하는 말풍선 + 타이핑 텍스트 -->
+    <div class="speech">
+      <div class="speech-bubble">
+        <p id="typing-text" class="typing-text"></p>
+      </div>
+    </div>
+
+    <!-- 날짜 -->
+    <h3 class="date-title">2025년 11월 1일</h3>
+
+    <!-- 소비 내역 리스트 -->
+    <div class="list" id="expense-list">
+      <!-- JS에서 렌더링 -->
+    </div>
+
+    <!-- 여러 개 선택 후 넘어가는 버튼 -->
+    <button class="evaluate-btn" id="evaluate-btn" type="button" disabled>
+      선택한 소비 평가하러 가기
+    </button>
+  </div>
+
+  <script>
+    // ---------- 가상의 소비 내역들 ----------
+    const expenses = [
+      {
+        id: 0,
+        title: "메가커피",
+        amount: 3900,
+        detail: "메가커피 | 카카오뱅크",
+        icon: "image/mgc.png"
+      },
+      {
+        id: 1,
+        title: "메가커피",
+        amount: 4500,
+        detail: "저녁 아메리카노 | 카카오뱅크",
+        icon: "image/mgc.png"
+      },
+      {
+        id: 2,
+        title: "넷플릭스",
+        amount: 13500,
+        detail: "넷플릭스 | 체크카드",
+        icon: "image/netflix.png"
+      },
+      {
+        id: 3,
+        title: "배달의 민족",
+        amount: 22000,
+        detail: "페페로니 피자 P 세트 | 카카오페이",
+        icon: "image/bmin.png"
+      },
+      {
+        id: 4,
+        title: "배달의 민족",
+        amount: 12000,
+        detail: "야식 떡볶이 세트 | 카카오페이",
+        icon: "image/bmin.png"
+      },
+      {
+        id: 5,
+        title: "메가커피",
+        amount: 2800,
+        detail: "디카페인 라떼 | 카카오뱅크",
+        icon: "image/mgc.png"
+      },
+      {
+        id: 6,
+        title: "넷플릭스",
+        amount: 9500,
+        detail: "넷플릭스 모바일 | 체크카드",
+        icon: "image/netflix.png"
+      }
+    ];
+
+    const listEl = document.getElementById("expense-list");
+    const evaluateBtn = document.getElementById("evaluate-btn");
+
+    const formatAmount = (n) =>
+      "-" + n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
+
+    // ✅ 선택된 index들을 저장 (여러 개 선택 가능)
+    const selectedIndices = new Set();
+
+    // 리스트 렌더링
+    expenses.forEach((item, index) => {
+      const card = document.createElement("button");
+      card.className = "item";
+      card.type = "button";
+      card.dataset.index = index;
+
+      card.innerHTML = `
+        <div class="item-left">
+          <div class="item-icon">
+            <img src="${item.icon}" alt="${item.title} 아이콘">
+          </div>
+        </div>
+        <div class="item-right">
+          <div class="item-amount">${formatAmount(item.amount)}</div>
+          <div class="item-detail">${item.detail}</div>
+        </div>
+      `;
+
+      // 클릭 시 선택/해제 토글 (바로 화면 이동 X)
+      card.addEventListener("click", () => toggleSelect(card, index));
+
+      listEl.appendChild(card);
+    });
+
+    function toggleSelect(card, index) {
+      if (selectedIndices.has(index)) {
+        // 이미 선택되어 있으면 해제
+        selectedIndices.delete(index);
+        card.classList.remove("selected");
+      } else {
+        // 새로 선택
+        selectedIndices.add(index);
+        card.classList.add("selected");
+      }
+
+      updateEvaluateButtonState();
+    }
+
+    function updateEvaluateButtonState() {
+      if (selectedIndices.size > 0) {
+        evaluateBtn.disabled = false;
+        evaluateBtn.classList.add("enabled");
+      } else {
+        evaluateBtn.disabled = true;
+        evaluateBtn.classList.remove("enabled");
+      }
+    }
+
+    // 여러 개 선택 후에만 평가 화면으로 이동
+    evaluateBtn.addEventListener("click", () => {
+      if (selectedIndices.size === 0) return;
+
+      const indicesArray = Array.from(selectedIndices);
+      const first = indicesArray[0];
+      const listParam = indicesArray.join(",");
+
+      // swipe-evaluate.html 로 정보 전달 (item: 첫번째, list: 전체)
+      window.location.href = `swipe-evaluate.html?item=${first}&list=${listParam}`;
+    });
+
+    // ---------- 타이핑 효과 ----------
+    const typingTarget = document.getElementById("typing-text");
+    const typingMessage = "소비 평가할 내역을 선택해주세요.";
+    let typingIndex = 0;
+
+    function typeStep() {
+      if (typingIndex <= typingMessage.length) {
+        typingTarget.textContent = typingMessage.slice(0, typingIndex);
+        typingIndex++;
+        setTimeout(typeStep, 60); // 속도 조절
+      }
+    }
+
+    typeStep();
+  </script>
+</body>
+</html>

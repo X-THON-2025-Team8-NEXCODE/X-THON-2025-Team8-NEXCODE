@@ -25,7 +25,7 @@
     <section class="today-section">
       <div class="today-card">
         <div class="today-label-row">
-          <span class="today-label">오늘의 지출</span>
+          <span class="today-label">재호님의 오늘의 지출</span>
           <button class="refresh-btn" id="refresh-btn" aria-label="새로고침">
             <img
               src="image/f5.png"
@@ -93,7 +93,8 @@
           <span class="action-label">후회도</span>
         </button>
 
-        <button class="action-item">
+        <!-- 🔹 여기만 수정: id 추가해서 swipe.html로 이동시키기 -->
+        <button class="action-item" id="review-button">
           <img src="image/good.png" alt="소비 평가 아이콘" />
           <span class="action-label">소비 평가</span>
         </button>
@@ -113,6 +114,7 @@
     const expenses = [
       {
         icon: "M",
+        iconSrc: "image/mgc.png",      // 🔹 메가커피 이미지
         title: "메가커피",
         subtitle: "메가커피 · 카카오뱅크",
         tag: "카페",
@@ -120,6 +122,7 @@
       },
       {
         icon: "N",
+        iconSrc: "image/netflix.png",  // 🔹 넷플릭스 이미지
         title: "넷플릭스",
         subtitle: "넷플릭스 · 카카오페이",
         tag: "구독",
@@ -127,6 +130,7 @@
       },
       {
         icon: "B",
+        iconSrc: "image/bmin.png",     // 🔹 배민 이미지
         title: "배달의 민족",
         subtitle: "페페로니 피자 P 세트",
         tag: "배달",
@@ -150,7 +154,9 @@
 
       row.innerHTML = `
         <div class="history-left">
-          <div class="history-icon">${item.icon}</div>
+          <div class="history-icon">
+            <img src="${item.iconSrc}" alt="${item.title} 아이콘" />
+          </div>
           <div class="history-text">
             <div class="history-title-row">
               <span class="history-merchant">${item.title}</span>
@@ -197,6 +203,13 @@
     document
       .getElementById("refresh-btn")
       .addEventListener("click", () => location.reload());
+
+    // 🔹 소비 평가 버튼 → swipe.html 이동
+    document
+      .getElementById("review-button")
+      .addEventListener("click", () => {
+        window.location.href = "swipe.html";
+      });
   </script>
 </body>
 </html>

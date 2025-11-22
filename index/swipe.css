@@ -1,0 +1,197 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR",
+    system-ui, sans-serif;
+  background-image: url("image/realindexbg.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  color: #111827;
+}
+
+.page {
+  width: 100%;
+  max-width: 480px;      /* index와 동일 폭 */
+  margin: 0 auto;
+  padding: 32px 16px 24px;  /* 전체 내용을 조금 아래로 내림 */
+}
+
+/* 홈 버튼: 아이콘 크게 + 글씨는 아래 */
+.home-btn {
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  flex-direction: column;      /* 아이콘 위, 글씨 아래 */
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 10px;
+}
+
+.home-icon {
+  width: 48px;                 /* 버튼 크게 */
+  height: 48px;
+  object-fit: contain;
+}
+
+.home-label {
+  font-size: 11px;             /* 덜 튀게 작게 */
+  margin-top: 4px;
+  color: #6b7280;              /* 중간 톤 회색 */
+  font-weight: 500;
+}
+
+/* 씨앗 캐릭터: 말풍선이랑 거의 붙게 */
+.mascot {
+  display: block;
+  margin: 20px auto 0;    /* 위에서 약간 내리고, 아래 여백은 0 */
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+}
+
+/* 말풍선: 씨앗 바로 밑으로, 간격 최소 */
+.speech {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 24px;     /* 위쪽 4px만 주고, 나머진 아래 여백 */
+}
+
+/* 말풍선 박스 */
+.speech-bubble {
+  max-width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+/* 말풍선 꼬리 */
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 10px 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent rgba(255, 255, 255, 0.96) transparent;
+}
+
+/* 타이핑 텍스트 */
+.typing-text {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 날짜 */
+.date-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 16px 0 12px;
+}
+
+/* 리스트 컨테이너 */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 개별 소비 카드 */
+.item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+}
+
+.item-left {
+  margin-right: 10px;
+}
+
+.item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #fefce8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-icon img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.item-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-amount {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.item-detail {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 선택 상태 표시 */
+.item.selected {
+  background: #ecfdf5;
+  box-shadow: 0 0 0 2px #34d399 inset, 0 8px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* 선택한 소비 평가 버튼 */
+.evaluate-btn {
+  margin-top: 18px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  background: #111827;
+  color: #f9fafb;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  cursor: default;
+  opacity: 0.4;
+  transition: opacity 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* 선택된 항목 있을 때 활성화 */
+.evaluate-btn.enabled {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.evaluate-btn.enabled:active {
+  transform: translateY(1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
