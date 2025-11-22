@@ -151,7 +151,7 @@
       }
     }
 
-    // 여러 개 선택 후에만 평가 화면으로 이동
+    // 여러 개 선택 후에만 평가 화면으로 이동 → choose.html로 이동
     evaluateBtn.addEventListener("click", () => {
       if (selectedIndices.size === 0) return;
 
@@ -159,7 +159,7 @@
       const first = indicesArray[0];
       const listParam = indicesArray.join(",");
 
-      // swipe-evaluate.html 로 정보 전달 (item: 첫번째, list: 전체)
+      // choose.html 로 정보 전달 (item: 첫번째, list: 전체)
       window.location.href = `choose.html?item=${first}&list=${listParam}`;
     });
 
