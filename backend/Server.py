@@ -1,6 +1,8 @@
 from utils.db_utils import create_expenses_table, insert_expenses_data
 from utils.openai_utils import ask_ai, classify_category
-from flask import Flask, jsonify, request
+import os
+import requests
+from flask import Flask, jsonify, request, redirect, session
 from flask_cors import CORS
 import pymysql
 import json
@@ -12,6 +14,7 @@ if sys.stderr.encoding != 'utf-8':
 	sys.stderr = open(sys.stderr.fileno(), mode='w', encoding='utf-8', buffering=1)
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 CORS(app)
 
 def get_db_connection():
@@ -29,6 +32,13 @@ def get_db_connection():
 		print(f"[ERROR] 데이터베이스 연결 오류: {e}")
 		return None
 
+client_id = "7cf0e1ebb6ff3e9c3cffcac43ae44e78"
+client_secret = "4pGmDju9d4OKGXi2dXVs399ZDdIoU6mV"
+
+domain = "https://x-thon.nexcode.kr:16010"
+redirect_uri = domain + "/kakao/redirect"
+kauth_host = "https://kauth.kakao.com"
+kapi_host = "https://kapi.kakao.com"
 
 @app.route('/debug', methods=['POST'])
 def debug_post_request():
@@ -69,7 +79,75 @@ def debug_post_request():
 			"received_raw_body": raw_data,
 			"parsing_error": str(e)
 		}), 400
-  
+
+@app.route("/kakao/authorize")
+def authorize():
+	scope_param = ""
+	if request.args.get("scope"):
+		scope_param = "&scope=" + request.args.get("scope")
+	
+	print(f"[Kakao] Redirecting to Kakao Login with client_id: {client_id}")
+	
+	# 파이썬 서버가 직접 리다이렉트 URL을 생성하여 브라우저를 카카오로 보냅니다.
+	return redirect(
+		"{0}/oauth/authorize?response_type=code&client_id={1}&redirect_uri={2}{3}".format(
+			kauth_host, client_id, redirect_uri, scope_param
+		)
+	)
+
+# 3. 카카오 인증 후 리다이렉트 처리
+@app.route("/kakao/redirect")
+def redirect_page():
+	code = request.args.get("code")
+	
+	# 토큰 요청
+	data = {
+		'grant_type': 'authorization_code',
+		'client_id': client_id,
+		'redirect_uri': redirect_uri,
+		'client_secret': client_secret,
+		'code': code
+	}
+	
+	try:
+		resp = requests.post(kauth_host + "/oauth/token", data=data)
+		
+		if resp.status_code == 200:
+			session['access_token'] = resp.json().get('access_token')
+			print("[Kakao] Login Success, Redirecting to Main Domain")
+			# 로그인 성공 시 메인 도메인으로 이동
+			return redirect("https://x-thon.nexcode.kr")
+		else:
+			print(f"[Kakao] Login Failed: {resp.text}")
+			# 로그인 실패 시 네이버로 이동
+			return redirect("https://naver.com")
+			
+	except Exception as e:
+		print(f"[Error] Token exchange error: {e}")
+		return redirect("https://naver.com")
+
+# ... (나머지 API 함수들은 기존과 동일하게 유지) ...
+@app.route("/kakao/profile")
+def profile():
+	headers = {'Authorization': 'Bearer ' + session.get('access_token', '')}
+	resp = requests.get(kapi_host + "/v2/user/me", headers=headers)
+	return resp.text
+
+@app.route("/kakao/logout")
+def logout():
+	headers = {'Authorization': 'Bearer ' + session.get('access_token', '')}
+	resp = requests.post(kapi_host + "/v1/user/logout", headers=headers)
+	session.pop('access_token', None)
+	return resp.text
+
+@app.route("/kakao/unlink")
+def unlink():
+	headers = {'Authorization': 'Bearer ' + session.get('access_token', '')}
+	resp = requests.post(kapi_host + "/v1/user/unlink", headers=headers)
+	session.pop('access_token', None)
+	return resp.text
+
+
 @app.route('/api/buy', methods=['POST'])
 def buy():
 	data = request.get_json()
