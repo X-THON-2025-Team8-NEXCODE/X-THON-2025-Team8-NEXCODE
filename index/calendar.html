@@ -329,8 +329,10 @@
     // ▲▲▲ 여기까지 ▲▲▲
 
     dateDiv.onclick = function() {
-      alert(`${currentYear}년 ${currentMonth}월 ${d}일 선택!`);
-    };
+  // 주소 뒤에 년, 월, 일 정보를 붙여서 detail.html로 이동합니다.
+  // 예: detail.html?year=2025&month=11&day=15
+    location.href = `calendarBuyList.html?year=${currentYear}&month=${currentMonth}&day=${d}`;
+  };
     datesContainer.appendChild(dateDiv);
   }
 }
