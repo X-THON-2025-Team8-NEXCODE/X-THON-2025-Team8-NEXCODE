@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>가계부 캐릭터 앱</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR",
+        system-ui, sans-serif;
+      /* 바깥 컴퓨터 화면 배경 */
+      background: radial-gradient(
+        circle at 0% 0%,
+        #c6f3ff 0,
+        #e9fff6 40%,
+        #f8fffb 100%
+      );
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #222;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 430px;
+      padding: 16px;
+    }
+
+    .app {
+      /* 👉 가운데 모바일 카드 배경: 강한 그라데이션 + S23 비율 */
+      background: linear-gradient(
+        135deg,
+        #f0fff4 0%,
+        #d4fbe0 25%,
+        #b8f2e0 55%,
+        #c7ddff 100%
+      );
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+      padding: 20px 20px 24px;
+      position: relative;
+      overflow: hidden;
+
+      /* 갤럭시 S23 비율(대략 9:19.5) */
+      aspect-ratio: 9 / 19.5;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    /* 헤더 */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .icon-btn img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* 상단 텍스트 */
+    .today-section {
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+
+    .today-label-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .today-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #166534;
+    }
+
+    .refresh-btn {
+      border: none;
+      background: transparent;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .refresh-icon {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      opacity: 0.9;
+    }
+
+    /* 금액 하이라이트 */
+    .today-amount-wrapper {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: radial-gradient(
+        circle at 0% 0%,
+        rgba(188, 255, 205, 1) 0,
+        rgba(188, 255, 205, 0.45) 35%,
+        rgba(188, 255, 205, 0) 100%
+      );
+    }
+
+    .today-amount {
+      font-weight: 800;
+      font-size: 30px;
+      color: #14532d;
+    }
+
+    /* 프로그레스 원 */
+    .mascot-section {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0 18px;
+    }
+
+    .progress-ring {
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      /* 12시에서 시작해서 4시까지만, 연한 초록 그라데이션 */
+      background: conic-gradient(
+        from -90deg,
+        #e4fbe9 0deg,
+        #c7f9cc 40deg,
+        #a7f3d0 80deg,
+        #6ee7b7 120deg,
+        #e5e7eb 120deg,
+        #e5e7eb 360deg
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-inner {
+      width: 182px;
+      height: 182px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 30% 20%,
+        #ffffff 0,
+        #f6fbff 60%,
+        #e0f2fe 100%
+      );
+      box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.04),
+        0 10px 18px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: 6px;
+    }
+
+    .mascot-img {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      margin-bottom: 3px;
+    }
+
+    .level-text {
+      font-weight: 700;
+      font-size: 18px;
+      color: #374151;
+    }
+
+    /* 가계부/후회도/소비 평가 카드 */
+    .actions-card {
+      background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #f7fff9 100%
+      );
+      border-radius: 24px;
+      padding: 14px 10px 10px;
+      margin-bottom: 18px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .actions-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .action-item {
+      flex: 1;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-item img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .action-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    /* 지출 내역 카드 */
+    .history-card {
+      background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #eef2ff 100%
+      );
+      border-radius: 20px;
+      padding: 14px 14px 10px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .history-header {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #4b5563;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #dcfce7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: #15803d;
+    }
+
+    .history-text-main {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .history-text-sub {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .history-more {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    <div class="app">
+      <!-- 헤더 -->
+      <header class="app-header">
+        <button class="icon-btn" aria-label="알림">
+          <img
+            src="./image/alarm.png"
+            alt="알림 아이콘"
+          />
+        </button>
+        <button class="icon-btn" aria-label="마이페이지">
+          <img
+            src="./image/my.png"
+            alt="마이페이지 아이콘"
+          />
+        </button>
+        <button class="icon-btn" aria-label="메뉴">
+          <img
+            src="./image/thebogy.png"
+            alt="메뉴 아이콘"
+          />
+        </button>
+      </header>
+
+      <!-- 오늘의 지출 -->
+      <section class="today-section">
+        <div class="today-label-row">
+          <span class="today-label">오늘의 지출</span>
+          <!-- 새로고침 버튼 -->
+          <button class="refresh-btn" id="refresh-btn" aria-label="새로고침">
+            <img
+              src="./image/f5.png"
+              alt="새로고침 아이콘"
+              class="refresh-icon"
+            />
+          </button>
+        </div>
+        <div class="today-amount-wrapper">
+          <span class="today-amount" id="today-amount">0원</span>
+        </div>
+      </section>
+
+      <!-- 캐릭터 레벨 & 프로그레스 링 -->
+      <section class="mascot-section">
+        <div class="progress-ring">
+          <div class="progress-inner">
+            <!-- 씨앗 캐릭터 -->
+            <img
+              src="./image/seed.png"
+              alt="저금 캐릭터"
+              class="mascot-img"
+            />
+            <div class="level-text">Lv. 1</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 가계부 / 후회도 / 소비 평가 -->
+      <section class="actions-card">
+        <div class="actions-row">
+          <button class="action-item">
+            <img
+              src="./image/calendar.png"
+              alt="가계부 아이콘"
+            />
+            <span class="action-label">가계부</span>
+          </button>
+
+          <button class="action-item">
+            <img
+              src="./image/sad.png"
+              alt="후회도 아이콘"
+            />
+            <span class="action-label">후회도</span>
+          </button>
+
+          <button class="action-item">
+            <img
+              src="./image/good.png"
+              alt="소비 평가 아이콘"
+            />
+            <span class="action-label">소비 평가</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 지출 내역 -->
+      <section class="history-card">
+        <div class="history-header">지출 내역</div>
+        <div class="history-list" id="history-list"></div>
+        <div class="history-more">더 보기</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // 지출 내역 더미 데이터
+    const expenses = [
+      {
+        icon: "M",
+        title: "메가커피",
+        subtitle: "메가커피 | 카카오뱅크",
+        amount: 3900
+      },
+      {
+        icon: "N",
+        title: "넷플릭스",
+        subtitle: "넷플릭스 | 카카오페이",
+        amount: 11700
+      },
+      {
+        icon: "B",
+        title: "배달의 민족",
+        subtitle: "배달의 민족 | 페페로니 피자 P...",
+        amount: 14000
+      }
+    ];
+
+    const historyListEl = document.getElementById("history-list");
+    const todayAmountEl = document.getElementById("today-amount");
+
+    const formatCurrency = (n) =>
+      n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
+
+    // 렌더링 + 합계 계산
+    let total = 0;
+    expenses.forEach((item) => {
+      total += item.amount;
+
+      const row = document.createElement("div");
+      row.className = "history-item";
+
+      row.innerHTML = `
+        <div class="history-left">
+          <div class="history-icon">${item.icon}</div>
+          <div>
+            <div class="history-text-main">-${formatCurrency(item.amount)}</div>
+            <div class="history-text-sub">${item.subtitle}</div>
+          </div>
+        </div>
+      `;
+      historyListEl.appendChild(row);
+    });
+
+    // 오늘의 지출 = 합계
+    todayAmountEl.textContent = formatCurrency(total);
+
+    // f5 아이콘 클릭 시 페이지 새로고침
+    document
+      .getElementById("refresh-btn")
+      .addEventListener("click", () => location.reload());
+  </script>
+</body>
+</html>
