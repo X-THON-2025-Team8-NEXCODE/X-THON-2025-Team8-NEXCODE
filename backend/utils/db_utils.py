@@ -164,7 +164,7 @@ def insert_initial_data(user_id, item_name, category, price, time_text, sentimen
     finally:
         if conn:
             conn.close()
-            
+
 def get_expenses(user_id, date):
     table_name = f'{user_id}_expenses'
     conn = None
