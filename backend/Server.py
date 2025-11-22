@@ -14,7 +14,7 @@ if sys.stderr.encoding != 'utf-8':
 	sys.stderr = open(sys.stderr.fileno(), mode='w', encoding='utf-8', buffering=1)
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.urandom(24) 
 CORS(app)
 
 def get_db_connection():
