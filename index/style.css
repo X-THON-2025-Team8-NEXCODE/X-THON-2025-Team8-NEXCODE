@@ -217,7 +217,7 @@ body {
 .actions-row {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 4px;
 }
 
 .action-item {
@@ -232,16 +232,18 @@ body {
 }
 
 .action-item img {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   display: block;
 }
 
 .action-label {
-  font-size: 13px;
+  font-size: 11px; /* 기존 13px -> 11px로 수정 */
   font-weight: 700;
   color: #111827;
+  white-space: nowrap;
+  letter-spacing: -0.5px;
 }
 
 /* ߔ頬瀬朠내역 카드 */
