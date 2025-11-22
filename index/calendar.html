@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buy-bye 가계부 캘린더</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <style>
+    /* === 기본 설정 === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif;
+  
+  /* ▼▼▼ 기존 색상 코드를 지우고 아래 코드를 복사해서 넣으세요 ▼▼▼ */
+  
+  /* 배경 이미지 경로 (아까 로그인 화면 때처럼 경로를 잘 맞춰주세요!) */
+      background-image: url("./image/background.png");
+  
+  /* 배경 이미지가 화면에 꽉 차게 설정 */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+
+  /* ▲▲▲ 여기까지 ▲▲▲ */
+
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .app-frame {
+      width: 100vw;
+      max-width: 480px; 
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .home-icon {
+      width: 40px;
+      height: 40px;
+      background-image: url('./image/home.png');
+      background-size: cover;
+    }
+    .home-text {
+      font-size: 12px;
+      color: #555;
+      margin-top: 4px;
+      font-weight: 600;
+      margin-left: 2px;
+    }
+
+    .character-area {
+      display: flex;
+      justify-content: center;
+      margin-top: -20px; 
+      margin-bottom: 20px;
+    }
+    .character-img {
+      width: 140px; 
+      height: 140px;
+      object-fit: cover;
+      filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+    }
+
+    .info-text {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #000;
+      margin-bottom: 24px;
+      word-break: keep-all; 
+    }
+
+    .calendar-card {
+      background: #ffffff;
+      border-radius: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      padding: 30px 20px;
+      flex: none;       
+      height: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .date-cell.today {
+      background-color: #d7fed9 !important; 
+      color: #3b691f;            
+      font-weight: 900;          
+      border-radius: 12px;       
+    }
+
+    /* 캘린더 헤더 (10월 - 2025년 11월 - 12월) */
+    .cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start; /* 위쪽 정렬 */
+      margin-bottom: 30px;
+      padding: 0 10px;
+      position: relative;
+      z-index: 100;
+    }
+
+    /* 양옆 흐린 달 (10월, 12월) */
+    .side-month {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #aaa; /* 흐린 회색 */
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .side-month:hover {
+      color: #555;
+    }
+
+    /* 가운데 현재 년/월 */
+    .center-date {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .year-select {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 4px;
+      cursor: pointer;
+  
+  /* 셀렉트 박스 테두리 없애고 글자처럼 만들기 */
+      border: none;
+      background: transparent;
+      text-align: center;
+      outline: none; /* 클릭했을 때 파란 테두리 제거 */
+  
+  /* (선택사항) 화살표 아이콘 숨기기 - 깔끔하게 */
+      -webkit-appearance: none; 
+      appearance: none; 
+      
+    }
+
+    .month-text {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #000;
+      line-height: 1;
+  /* cursor: pointer;  <-- 이 줄을 지우거나 아래처럼 default로 바꿈 */
+      cursor: default; 
+    }
+
+    /* 요일 (일 월 화 ...) */
+    .days-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .day-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #888;
+    }
+    /* 일요일 빨강, 토요일 파랑 */
+    .day-name.sun { color: #e55039; }
+    .day-name.sat { color: #3c6382; }
+
+    /* 날짜 그리드 */
+    .dates-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px 0; /* 세로 간격 */
+      text-align: center;
+    }
+    .date-cell {
+      height: 45px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: background 0.2s;
+    }
+    /* 오늘 날짜 강조 (필요하면 사용) */
+    .date-cell.today {
+      background-color: #dff9fb;
+      color: #22a6b3;
+      font-weight: 800;
+    }
+    .date-cell:hover {
+      background-color: #f0f0f0;
+    }
+    /* 빈 칸 */
+    .date-cell.empty { cursor: default; pointer-events: none; }
+    
+    /* 주말 색상 (날짜) */
+    .date-cell.sun { color: #e55039; }
+    .date-cell.sat { color: #3c6382; }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-frame">
+    
+    <div class="top-bar" onclick="goHome()">
+      <div class="home-icon"></div> 
+      <div class="home-text">홈 화면</div>
+    </div>
+
+    <div class="character-area">
+      <img src="./image/seed.png" 
+           alt="Character" 
+           class="character-img" />
+    </div>
+
+    <div class="info-text">
+      가계부를 자세히 보고 싶은<br>날짜를 클릭하세요!
+    </div>
+
+    <div class="calendar-card">
+      
+      <div class="cal-header">
+        <div class="side-month" id="prevMonthBtn" onclick="changeMonth(-1)">10월</div>
+        
+        <div class="center-date">
+          <select id="yearSelect" class="year-select" onchange="changeYear()">
+            <option value="2024">2024년</option>
+            <option value="2025" selected>2025년</option>
+          </select>
+          <div class="month-text" id="currentMonth">11월</div>
+        </div>
+        
+        <div class="side-month" id="nextMonthBtn" onclick="changeMonth(1)">12월</div>
+      </div>
+
+      <div class="days-row">
+        <div class="day-name sun">일</div>
+        <div class="day-name">월</div>
+        <div class="day-name">화</div>
+        <div class="day-name">수</div>
+        <div class="day-name">목</div>
+        <div class="day-name">금</div>
+        <div class="day-name sat">토</div>
+      </div>
+
+      <div class="dates-grid" id="datesContainer">
+        </div>
+
+    </div>
+  </div>
+
+  <script>
+    // === 설정 ===
+    let today = new Date();
+    let currentYear = 2025; // 기본 2025년 시작
+    let currentMonth = 11;  // 기본 11월 시작
+
+    // HTML 요소 가져오기
+    const yearSelect = document.getElementById('yearSelect');
+    const monthEl = document.getElementById('currentMonth');
+    const prevBtn = document.getElementById('prevMonthBtn');
+    const nextBtn = document.getElementById('nextMonthBtn');
+    const datesContainer = document.getElementById('datesContainer');
+
+    // 1. 달력 그리기 함수
+   function renderCalendar() {
+  // (중요) 드롭다운의 년도를 현재 년도와 맞춤
+  yearSelect.value = currentYear; 
+  monthEl.innerText = `${currentMonth}월`;
+
+  // 양옆 월 표시 계산
+  let prevM = currentMonth - 1;
+  let nextM = currentMonth + 1;
+  if (prevM < 1) prevM = 12;
+  if (nextM > 12) nextM = 1;
+
+  prevBtn.innerText = `${prevM}월`;
+  nextBtn.innerText = `${nextM}월`;
+
+  // 날짜 비우기
+  datesContainer.innerHTML = '';
+
+  // 달력 로직
+  const firstDay = new Date(currentYear, currentMonth - 1, 1);
+  const lastDay = new Date(currentYear, currentMonth, 0);
+  const startDayOfWeek = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+
+  // 빈 칸 채우기
+  for (let i = 0; i < startDayOfWeek; i++) {
+    const emptyDiv = document.createElement('div');
+    emptyDiv.classList.add('date-cell', 'empty');
+    datesContainer.appendChild(emptyDiv);
+  }
+
+  // 날짜 채우기
+  for (let d = 1; d <= totalDays; d++) {
+    const dateDiv = document.createElement('div');
+    dateDiv.classList.add('date-cell');
+    dateDiv.innerText = d;
+
+    const checkDay = new Date(currentYear, currentMonth - 1, d).getDay();
+    if (checkDay === 0) dateDiv.classList.add('sun');
+    if (checkDay === 6) dateDiv.classList.add('sat');
+
+    // ▼▼▼ [여기 추가됨] 오늘 날짜인지 확인해서 하이라이트 주기! ▼▼▼
+    if (currentYear === today.getFullYear() && 
+        currentMonth === (today.getMonth() + 1) && 
+        d === today.getDate()) {
+      dateDiv.classList.add('today');
+    }
+    // ▲▲▲ 여기까지 ▲▲▲
+
+    dateDiv.onclick = function() {
+  // 주소 뒤에 년, 월, 일 정보를 붙여서 detail.html로 이동합니다.
+  // 예: detail.html?year=2025&month=11&day=15
+    location.href = `calendarBuyList.html?year=${currentYear}&month=${currentMonth}&day=${d}`;
+  };
+    datesContainer.appendChild(dateDiv);
+  }
+}
+
+    // 2. 월 이동 함수 (< 10월, 12월 > 버튼)
+    function changeMonth(step) {
+      currentMonth += step;
+
+      if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear++;
+      } else if (currentMonth < 1) {
+        currentMonth = 12;
+        currentYear--;
+      }
+      renderCalendar();
+    }
+
+    // 3. 년도 선택 변경 시 실행되는 함수 (새로 추가됨!)
+    function changeYear() {
+      // 드롭다운에서 선택한 값을 숫자로 가져와서 반영
+      currentYear = parseInt(yearSelect.value);
+      renderCalendar();
+    }
+
+    // 4. 홈 버튼 이동
+    function goHome() {
+       location.href = 'index.html'; 
+    }
+
+    // 초기 실행
+    renderCalendar();
+
+  </script>
+</body>
+</html>

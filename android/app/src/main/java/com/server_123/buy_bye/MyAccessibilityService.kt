@@ -21,7 +21,7 @@ import java.util.Locale
 
 class MyAccessibilityService : AccessibilityService() {
     private val client = OkHttpClient()
-    private val SERVER_URL = "https://x-thon.nexcode.kr:16010/debug"
+    private val SERVER_URL = "https://x-thon.nexcode.kr:16010"
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -54,8 +54,8 @@ class MyAccessibilityService : AccessibilityService() {
 
                 Log.d("Scraping", "결제 알림 감지: $notificationText")
 
-                val amount = extractAmount(notificationText)
                 val merchant = extractMerchant(notificationText)
+                val price = extractAmount(notificationText)
 
                 val eventUptime = event.eventTime
                 val currentUptime = SystemClock.uptimeMillis()
@@ -64,10 +64,13 @@ class MyAccessibilityService : AccessibilityService() {
                 val actualEpochTime = currentTimeEpoch - (currentUptime - eventUptime)
 
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                val timestamp = dateFormat.format(Date(actualEpochTime))
+                val created_at = dateFormat.format(Date(actualEpochTime))
 
-                if (amount != "0") {
-                    sendToServer(amount, merchant, timestamp)
+                val hourFormat = SimpleDateFormat("HH", Locale.getDefault())
+                val hour = hourFormat.format(Date(actualEpochTime))
+
+                if (price != "0") {
+                    sendToServer("hosik", merchant, price.toInt(), hour.toInt(), null, null, created_at)
                     scheduleNotification(merchant)
                 }
             }
@@ -89,16 +92,20 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     // 서버 전송 함수
-    private fun sendToServer(amount: String, merchant: String, timestamp: String) {
+    private fun sendToServer(user_id: String, merchant: String, price: Int, hour: Int, sentiment: String?, regret_flag: Int?, created_at: String) {
         val json = JSONObject()
-        json.put("amount", amount)
+        json.put("user_id", user_id)
         json.put("merchant", merchant)
-        json.put("timestamp", timestamp)
+        json.put("price", price)
+        json.put("hour", hour)
+        json.put("sentiment", sentiment)
+        json.put("regret_flag", regret_flag)
+        json.put("created_at", created_at)
 
         val body = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
 
         val request = Request.Builder()
-            .url(SERVER_URL)
+            .url(SERVER_URL + "/api/buy")
             .post(body)
             .build()
 
