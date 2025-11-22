@@ -165,6 +165,39 @@
     const formatCurrency = (n) =>
       n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
 
+    //  소비한 날짜/시간 문자열 포맷터
+    // 백엔드에서 내려주는 필드명에 맞춰 하나만 써도 되고,
+    // 아래처럼 여러 후보를 두고 있는 것 중 하나만 있어도 동작하게 해둠.
+    function formatItemDateTime(item) {
+      // 여기서 실제 필드명에 맞게 골라 쓰면 됨
+      const raw =
+        item.datetime ||
+        item.dateTime ||
+        item.date_time ||
+        item.used_at ||
+        item.approved_at ||
+        item.traded_at ||
+        item.created_at ||
+        null;
+
+      if (!raw) return "";
+
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) {
+        // 혹시 "2025-11-23 13:20"처럼 일반 문자열로만 오면 여기서 한 번 더 시도할 수도 있음
+        return "";
+      }
+
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const hour = String(d.getHours()).padStart(2, "0");
+      const minute = String(d.getMinutes()).padStart(2, "0");
+
+      // 예: 2025.11.23 13:20
+      return `${year}.${month}.${day} ${hour}:${minute}`;
+    }
+
     // 전체 지출 내역을 저장해 둘 배열
     let allExpenses = [];
     // false = 4개만, true = 전체
@@ -232,6 +265,9 @@
 
         let iconSrc = "image/bmin.png";
 
+        //  날짜/시간 텍스트
+        const dateTimeText = formatItemDateTime(item);
+
         row.innerHTML = `
           <div class="history-left">
             <div class="history-icon">
@@ -242,7 +278,9 @@
                 <span class="history-merchant">${item.merchant}</span>
                 <span class="history-tag">${item.category}</span>
               </div>
-              <div class="history-sub">${item.price}</div>
+              <div class="history-sub">
+                ${dateTimeText ? dateTimeText : ""}
+              </div>
             </div>
           </div>
           <div class="history-right">
@@ -431,4 +469,3 @@
   </script>
 </body>
 </html>
-
