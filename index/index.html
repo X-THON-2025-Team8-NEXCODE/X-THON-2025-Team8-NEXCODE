@@ -118,60 +118,60 @@
       n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
 
     function getTodayDateString() {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
 
 
     async function loadExpenses() {
       try {
-          const response = await fetch(`${API_BASE_URL}/api/expenses`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ user_id: 'hosik', date: getTodayDateString() })
-          });
-          const expenses = await response.json();
-    
-          // 렌더링 + 합계 계산
-          let total = 0;
-          expenses.data.forEach((item) => {
-            total += item.price;
-    
-            const row = document.createElement("div");
-            row.className = "history-item";
-            
-            let iconSrc = 'image/bmin.png'
-    
-            row.innerHTML = `
-              <div class="history-left">
-                <div class="history-icon">
-                  <img src="${iconSrc}" alt="${item.merchant} 아이콘" />
-                </div>
-                <div class="history-text">
-                  <div class="history-title-row">
-                    <span class="history-merchant">${item.merchant}</span>
-                    <span class="history-tag">${item.category}</span>
-                  </div>
-                  <div class="history-sub">${item.price}</div>
-                </div>
+        const response = await fetch(`${API_BASE_URL}/api/expenses`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ user_id: 'hosik', date: getTodayDateString() })
+        });
+        const expenses = await response.json();
+  
+        // 렌더링 + 합계 계산
+        let total = 0;
+        expenses.data.forEach((item) => {
+          total += item.price;
+  
+          const row = document.createElement("div");
+          row.className = "history-item";
+          
+          let iconSrc = 'image/bmin.png'
+  
+          row.innerHTML = `
+            <div class="history-left">
+              <div class="history-icon">
+                <img src="${iconSrc}" alt="${item.merchant} 아이콘" />
               </div>
-              <div class="history-right">
-                <span class="history-amount">-${formatCurrency(item.price)}</span>
+              <div class="history-text">
+                <div class="history-title-row">
+                  <span class="history-merchant">${item.merchant}</span>
+                  <span class="history-tag">${item.category}</span>
+                </div>
+                <div class="history-sub">${item.price}</div>
               </div>
-            `;
-    
-            historyListEl.appendChild(row);
-          });
-          return total
-        } catch (error) {
-          console.error("지출 내역을 불러오는 중 오류 발생:", error);
-          return -1
-        }
+            </div>
+            <div class="history-right">
+              <span class="history-amount">-${formatCurrency(item.price)}</span>
+            </div>
+          `;
+  
+          historyListEl.appendChild(row);
+        });
+        return total
+      } catch (error) {
+        console.error("지출 내역을 불러오는 중 오류 발생:", error);
+        return -1
+      }
     }
 
     async function init() {
