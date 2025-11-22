@@ -1,4 +1,4 @@
-from utils.db_utils import create_expenses_table, insert_expenses_data
+from utils.db_utils import create_expenses_table, create_initial_table, insert_expenses_data, insert_initial_data, save_update_kakao_user
 from utils.openai_utils import ask_ai, classify_category
 import os
 import requests
@@ -95,38 +95,64 @@ def authorize():
 		)
 	)
 
-# 3. 카카오 인증 후 리다이렉트 처리
 @app.route("/kakao/redirect")
 def redirect_page():
-	code = request.args.get("code")
-	
-	# 토큰 요청
-	data = {
-		'grant_type': 'authorization_code',
-		'client_id': client_id,
-		'redirect_uri': redirect_uri,
-		'client_secret': client_secret,
-		'code': code
-	}
-	
-	try:
-		resp = requests.post(kauth_host + "/oauth/token", data=data)
-		
-		if resp.status_code == 200:
-			session['access_token'] = resp.json().get('access_token')
-			print("[Kakao] Login Success, Redirecting to Main Domain")
-			# 로그인 성공 시 메인 도메인으로 이동
-			return redirect("https://x-thon.nexcode.kr")
-		else:
-			print(f"[Kakao] Login Failed: {resp.text}")
-			# 로그인 실패 시 네이버로 이동
-			return redirect("https://naver.com")
-			
-	except Exception as e:
-		print(f"[Error] Token exchange error: {e}")
-		return redirect("https://naver.com")
+    code = request.args.get("code")
+    
+    # 토큰 요청 데이터
+    data = {
+        'grant_type': 'authorization_code',
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'client_secret': client_secret,
+        'code': code
+    }
+    
+    try:
+        # A. 토큰 발급 요청
+        resp = requests.post(kauth_host + "/oauth/token", data=data)
+        
+        if resp.status_code == 200:
+            access_token = resp.json().get('access_token')
+            session['access_token'] = access_token # 세션에 토큰 저장
 
-# ... (나머지 API 함수들은 기존과 동일하게 유지) ...
+            # B. [추가됨] 사용자 정보 요청 (v2/user/me)
+            headers = {'Authorization': f'Bearer {access_token}'}
+            user_resp = requests.get(kapi_host + "/v2/user/me", headers=headers)
+
+            if user_resp.status_code == 200:
+                user_info = user_resp.json()
+                
+                # 데이터 추출
+                kakao_id = user_info.get('id')
+                kakao_account = user_info.get('kakao_account', {})
+                profile = kakao_account.get('profile', {})
+                
+                nickname = profile.get('nickname', 'Unknown')
+                image = profile.get('profile_image_url', '')
+
+                print(f"[Kakao] User Info: ID={kakao_id}, Nick={nickname}")
+
+                # C. [추가됨] DB에 저장 또는 업데이트
+                save_update_kakao_user(kakao_id, nickname, image)
+                
+                # D. [추가됨] 세션에 user_id 저장 (중요: 이후 사용자를 식별하기 위해)
+                session['user_id'] = str(kakao_id)
+
+                # E. 로그인 성공 시 메인 도메인으로 이동
+                return redirect("https://x-thon.nexcode.kr")
+            else:
+                print(f"[Kakao] User Info Failed: {user_resp.text}")
+                return redirect("https://naver.com")
+        else:
+            print(f"[Kakao] Token Failed: {resp.text}")
+            return redirect("https://naver.com")
+            
+    except Exception as e:
+        print(f"[Error] Login process error: {e}")
+        return redirect("https://naver.com")
+    
+    
 @app.route("/kakao/profile")
 def profile():
 	headers = {'Authorization': 'Bearer ' + session.get('access_token', '')}
