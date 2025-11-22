@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buy-bye AI 소비 분석</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- 폰트: 프리텐다드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <style>
+    /* === 기본 설정 (기존 앱 스타일 유지) === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: "Pretendard", -apple-system, sans-serif;
+      /* 배경 이미지 경로 확인해주세요 */
+      background-image: url("./image/background.png"); 
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .app-frame {
+      width: 100vw;
+      max-width: 480px;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .app-frame::-webkit-scrollbar { display: none; }
+
+    /* === 상단 헤더 === */
+    .header-area { margin-top: 10px; margin-bottom: 10px; }
+    .home-btn {
+      display: flex; flex-direction: column; align-items: center;
+      background: none; border: none; cursor: pointer; width: 50px;
+    }
+    .home-btn img { width: 40px; }
+    .home-text { font-size: 11px; color: #666; margin-top: 2px; font-weight: 600; }
+
+    /* === 캐릭터 영역 === */
+    .character-area {
+      text-align: center;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+    .char-img {
+      width: 120px; height: 120px;
+      object-fit: cover;
+      filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+    }
+    .page-title {
+      font-size: 1.4rem; font-weight: 800; color: #000;
+      margin-top: 10px;
+    }
+
+    /* === 공통 카드 스타일 === */
+    .card-box {
+      background: #ffffff;
+      border-radius: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      padding: 30px 25px;
+      width: 100%;
+      flex: 1; /* 남은 공간 채우기 */
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    /* === A. 입력 화면 (Form) === */
+    .input-group { margin-bottom: 20px; }
+    .input-label {
+      font-size: 0.95rem; font-weight: 700; color: #555;
+      margin-bottom: 8px; display: block;
+    }
+    
+    /* 입력창 스타일 (둥글고 깔끔하게) */
+    .custom-input, .custom-select {
+      width: 100%;
+      padding: 15px;
+      border-radius: 15px;
+      border: 2px solid transparent;
+      background: #F5F6F8;
+      font-size: 1rem; font-weight: 600; color: #333;
+      font-family: "Pretendard";
+      transition: all 0.2s;
+      outline: none;
+    }
+    .custom-input:focus, .custom-select:focus {
+      background: #fff;
+      border-color: #5de39e; /* 포커스시 브랜드 컬러 */
+      box-shadow: 0 0 0 4px rgba(93, 227, 158, 0.1);
+    }
+
+    /* 분석 버튼 */
+    .analyze-btn {
+      margin-top: auto; /* 하단 배치 */
+      width: 100%;
+      padding: 18px;
+      border-radius: 20px;
+      border: none;
+      background: linear-gradient(90deg, #5de39e 0%, #4bc98a 100%);
+      color: white;
+      font-size: 1.1rem; font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(93, 227, 158, 0.3);
+      transition: transform 0.1s;
+    }
+    .analyze-btn:active { transform: scale(0.98); }
+
+    /* === B. 로딩 화면 (숨김 상태) === */
+    .loading-screen {
+      display: none; /* 평소엔 숨김 */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+    }
+    /* 로딩 애니메이션 (빙글빙글 씨앗) */
+    .spinner-img {
+      width: 80px; height: 80px;
+      animation: spin 2s infinite linear;
+      margin-bottom: 20px;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    
+    .loading-text {
+      font-size: 1.1rem; font-weight: 700; color: #555;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+    /* === C. 결과 화면 (숨김 상태) === */
+    .result-screen { display: none; flex-direction: column; height: 100%; }
+
+    /* 판정 결과 배지 (신호등) */
+    .verdict-badge {
+      align-self: center;
+      padding: 10px 25px;
+      border-radius: 30px;
+      font-size: 1.2rem; font-weight: 800;
+      color: white;
+      margin-bottom: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .verdict-icon { font-size: 1.4rem; }
+
+    /* 상태별 색상 클래스 */
+    .bg-green { background: #2ecc71; } /* 추천 */
+    .bg-yellow { background: #f1c40f; } /* 주의 */
+    .bg-red { background: #e74c3c; }    /* 비추천 */
+
+    /* 위험 점수 게이지 */
+    .risk-area { margin-bottom: 30px; }
+    .risk-label-row {
+      display: flex; justify-content: space-between;
+      font-weight: 700; color: #666; margin-bottom: 8px;
+    }
+    .risk-score { font-size: 1.2rem; font-weight: 900; color: #333; }
+    
+    .risk-bar-bg {
+      width: 100%; height: 20px;
+      background: #eee; border-radius: 10px; overflow: hidden;
+    }
+    .risk-bar-fill {
+      height: 100%; border-radius: 10px;
+      /* 위험도에 따라 너비/색상 JS로 변경 */
+      width: 0%; 
+      transition: width 1s ease-out, background 0.3s;
+    }
+
+    /* AI 조언 말풍선 */
+    .advice-bubble {
+      background: #f0fdf4;
+      border: 2px solid #5de39e;
+      border-radius: 20px;
+      border-top-left-radius: 0; /* 말꼬리 효과 */
+      padding: 20px;
+      font-size: 1rem; font-weight: 600; color: #333;
+      line-height: 1.5;
+      position: relative;
+      margin-left: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    /* 말풍선 꼬리 */
+    .advice-bubble::before {
+      content: ""; position: absolute;
+      top: 0; left: -12px;
+      width: 0; height: 0;
+      border-top: 15px solid #5de39e;
+      border-left: 15px solid transparent;
+    }
+    .advice-bubble::after {
+      content: ""; position: absolute;
+      top: 2px; left: -8px;
+      width: 0; height: 0;
+      border-top: 12px solid #f0fdf4;
+      border-left: 12px solid transparent;
+    }
+
+    .retry-btn {
+      margin-top: auto;
+      width: 100%; padding: 15px;
+      border-radius: 15px; border: none;
+      background: #eee; color: #555;
+      font-weight: 700; cursor: pointer;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-frame">
+    
+    <!-- 1. 헤더 -->
+    <div class="header-area">
+      <button class="home-btn" onclick="location.href='index.html'">
+        <!-- 홈 아이콘 -->
+        <img src="./image/home.png" alt="홈">
+        <span class="home-text">홈 화면</span>
+      </button>
+    </div>
+
+    <!-- 2. 캐릭터 영역 (상황에 따라 이미지 바뀜) -->
+    <div class="character-area">
+      <!-- 기본 캐릭터 (seed.png) 또는 Lv4smile 이미지 경로를 넣으세요 -->
+      <img src="./image/seed.png" class="char-img" id="mainCharImg" alt="캐릭터">
+      <div class="page-title" id="pageTitle">AI가 재호님의 소비 고민을 들어줄게요!</div>
+    </div>
+
+    <div class="card-box">
+      
+      <!-- A. 입력 화면 (기본) -->
+      <div id="inputScreen">
+        <div class="input-group">
+          <label class="input-label">어떤 물건인가요?</label>
+          <input type="text" class="custom-input" id="itemName" placeholder="예: 텀블러, 운동화">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">가격은 얼마인가요?</label>
+          <input type="number" class="custom-input" id="itemPrice" placeholder="숫자만 입력 (원)">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">카테고리</label>
+          <select class="custom-select" id="itemCategory">
+            <option value="식비">식비 (카페/배달)</option>
+            <option value="쇼핑">쇼핑 (옷/잡화)</option>
+            <option value="취미">취미/여가</option>
+            <option value="구독">정기 구독</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">현재 시간</label>
+          <!-- JS로 자동 입력되지만 수정 가능하게 -->
+          <input type="text" class="custom-input" id="currentTime" readonly>
+        </div>
+
+        <button class="analyze-btn" onclick="startAnalysis()">
+          ✨ AI에게 물어보기
+        </button>
+      </div>
+
+
+      <!-- B. 로딩 화면 (분석 중) -->
+      <div id="loadingScreen" class="loading-screen">
+        <!-- 로딩 때 돌아가는 이미지 -->
+        <img src="./image/seed.png" class="spinner-img">
+        <div class="loading-text">
+          AI가 소비 패턴을<br>열심히 분석하고 있어요...
+        </div>
+      </div>
+
+
+      <!-- C. 결과 화면 (분석 완료) -->
+      <div id="resultScreen" class="result-screen">
+        <!-- 판정 배지 (🔴🟡🟢) -->
+        <div class="verdict-badge bg-green" id="verdictBadge">
+          <span class="verdict-icon">🟢</span>
+          <span id="verdictText">구매 추천</span>
+        </div>
+
+        <!-- 위험 점수 게이지 -->
+        <div class="risk-area">
+          <div class="risk-label-row">
+            <span>과소비 위험도</span>
+            <span class="risk-score" id="riskScoreText">15점</span>
+          </div>
+          <div class="risk-bar-bg">
+            <div class="risk-bar-fill" id="riskBar" style="width: 15%; background: #2ecc71;"></div>
+          </div>
+        </div>
+
+        <!-- AI 조언 말풍선 -->
+        <div style="display: flex; align-items: flex-start;">
+          <div class="advice-bubble" id="aiMessage">
+            "지난달 식비 지출이 적어서 이정도는 괜찮아요! <br>대신 이번 주 커피는 이걸로 끝내기로 약속해요~"
+          </div>
+        </div>
+
+        <button class="retry-btn" onclick="resetPage()">다른 물건도 물어보기</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // === 1. 초기 설정: 현재 시간 자동 입력 ===
+    const timeInput = document.getElementById('currentTime');
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    timeInput.value = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${hours}:${minutes}`;
+
+    // === 2. 분석 시작 함수 ===
+    function startAnalysis() {
+      const name = document.getElementById('itemName').value;
+      const price = document.getElementById('itemPrice').value;
+
+      // 유효성 검사
+      if (!name || !price) {
+        alert("물건 이름과 가격을 모두 입력해주세요!");
+        return;
+      }
+
+      // 화면 전환: 입력창 숨기기 -> 로딩창 보이기
+      document.getElementById('inputScreen').style.display = 'none';
+      document.getElementById('loadingScreen').style.display = 'flex';
+      
+      // 타이틀 변경
+      document.getElementById('pageTitle').innerText = "분석 중...";
+
+      // --- [백엔드 연동 시 이 부분을 API 호출로 바꾸세요] ---
+      // 지금은 2초 뒤에 결과가 나오는 것처럼 '가짜(Mock)'로 만듭니다.
+      setTimeout(() => {
+        showResult(price); // 가격을 넘겨서 테스트용 결과 생성
+      }, 2500); // 2.5초 딜레이
+    }
+
+    // === 3. 결과 보여주기 함수 ===
+    function showResult(price) {
+      // 로딩 숨기기 -> 결과 보이기
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('resultScreen').style.display = 'flex';
+      
+      // 캐릭터 이미지 변경 (Lv4 Smile 이미지 경로가 있다면 여기서 교체)
+      // document.getElementById('mainCharImg').src = "./index/image/Lv4smile.png";
+      document.getElementById('pageTitle').innerText = "분석 완료!";
+
+      // --- [AI 응답 시뮬레이션] ---
+      // 실제로는 백엔드에서 받은 json 데이터를 여기에 넣어야 합니다.
+      
+      const verdictBadge = document.getElementById('verdictBadge');
+      const verdictText = document.getElementById('verdictText');
+      const verdictIcon = document.querySelector('.verdict-icon');
+      const riskBar = document.getElementById('riskBar');
+      const riskText = document.getElementById('riskScoreText');
+      const message = document.getElementById('aiMessage');
+
+      // 예시 로직: 3만원 넘으면 '주의', 10만원 넘으면 '비추천'
+      let score = 0;
+      
+      if (price > 100000) {
+        // 🔴 비추천
+        verdictBadge.className = 'verdict-badge bg-red';
+        verdictText.innerText = '강력 비추천';
+        verdictIcon.innerText = '🔴';
+        score = 95;
+        riskBar.style.background = '#e74c3c';
+        message.innerHTML = "잠깐! ✋ 이번 달 예산이 거의 바닥났어요.<br>지금 이 소비는 위험해요. 하루만 더 고민해보는 건 어때요?";
+      
+      } else if (price > 30000) {
+        // 🟡 주의
+        verdictBadge.className = 'verdict-badge bg-yellow';
+        verdictText.innerText = '잠깐 고민!';
+        verdictIcon.innerText = '🟡';
+        score = 60;
+        riskBar.style.background = '#f1c40f';
+        message.innerHTML = "나쁘진 않지만, 최근 비슷한 카테고리 지출이 늘고 있어요.<br>꼭 필요한지 3번만 더 생각해볼까요?";
+      
+      } else {
+        // 🟢 추천
+        verdictBadge.className = 'verdict-badge bg-green';
+        verdictText.innerText = '구매 추천';
+        verdictIcon.innerText = '🟢';
+        score = 15;
+        riskBar.style.background = '#2ecc71';
+        message.innerHTML = "훌륭한 소비예요! ✨<br>당신의 절제된 소비 습관 덕분에 이정도는 충분히 즐겨도 됩니다!";
+      }
+
+      // 게이지 바 애니메이션
+      setTimeout(() => {
+        riskBar.style.width = score + "%";
+        riskText.innerText = score + "점";
+      }, 100);
+    }
+
+    // === 4. 다시 하기 ===
+    function resetPage() {
+      location.reload(); // 페이지 새로고침
+    }
+
+  </script>
+</body>
+</html>
