@@ -109,33 +109,7 @@
   </div>
 
   <script>
-    // --------------------- 지출 내역 더미 데이터 ---------------------
-    const expenses = [
-      {
-        icon: "M",
-        iconSrc: "image/mgc.png",      // 메가커피 이미지
-        title: "메가커피",
-        subtitle: "메가커피 · 카카오뱅크",
-        tag: "카페",
-        amount: 3900,
-      },
-      {
-        icon: "N",
-        iconSrc: "image/netflix.png",  // 넷플릭스 이미지
-        title: "넷플릭스",
-        subtitle: "넷플릭스 · 카카오페이",
-        tag: "구독",
-        amount: 11700,
-      },
-      {
-        icon: "B",
-        iconSrc: "image/bmin.png",     // 배민 이미지
-        title: "배달의 민족",
-        subtitle: "페페로니 피자 P 세트",
-        tag: "배달",
-        amount: 14000,
-      },
-    ];
+    const API_BASE_URL = 'http://x-thon.nexcode.kr:16010';
 
     const historyListEl = document.getElementById("history-list");
     const todayAmountEl = document.getElementById("today-amount");
@@ -143,34 +117,48 @@
     const formatCurrency = (n) =>
       n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
 
-    // 렌더링 + 합계 계산
-    let total = 0;
-    expenses.forEach((item) => {
-      total += item.amount;
 
-      const row = document.createElement("div");
-      row.className = "history-item";
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/expenses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ user_id: 1, date: new Date().toISOString().split('T')[0] })
+      });
+      const expenses = await response.json();
 
-      row.innerHTML = `
-        <div class="history-left">
-          <div class="history-icon">
-            <img src="${item.iconSrc}" alt="${item.title} 아이콘" />
-          </div>
-          <div class="history-text">
-            <div class="history-title-row">
-              <span class="history-merchant">${item.title}</span>
-              <span class="history-tag">${item.tag}</span>
+      // 렌더링 + 합계 계산
+      let total = 0;
+      expenses.forEach((item) => {
+        total += item.amount;
+
+        const row = document.createElement("div");
+        row.className = "history-item";
+
+        row.innerHTML = `
+          <div class="history-left">
+            <div class="history-icon">
+              <img src="${item.iconSrc}" alt="${item.title} 아이콘" />
             </div>
-            <div class="history-sub">${item.subtitle}</div>
+            <div class="history-text">
+              <div class="history-title-row">
+                <span class="history-merchant">${item.title}</span>
+                <span class="history-tag">${item.tag}</span>
+              </div>
+              <div class="history-sub">${item.subtitle}</div>
+            </div>
           </div>
-        </div>
-        <div class="history-right">
-          <span class="history-amount">-${formatCurrency(item.amount)}</span>
-        </div>
-      `;
+          <div class="history-right">
+            <span class="history-amount">-${formatCurrency(item.amount)}</span>
+          </div>
+        `;
 
-      historyListEl.appendChild(row);
-    });
+        historyListEl.appendChild(row);
+      });
+    } catch (error) {
+      console.error("지출 내역을 불러오는 중 오류 발생:", error);
+    }
 
     // 오늘의 지출 = 합계
     todayAmountEl.textContent = formatCurrency(total);
