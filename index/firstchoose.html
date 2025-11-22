@@ -8,17 +8,14 @@
 </head>
 <body>
   <div class="page">
-    <!-- 캐릭터: Lv4smile -->
     <img src="image/Lv4smile.png" alt="캐릭터" class="mascot" />
 
-    <!-- 씨앗 말풍선 안에 질문 텍스트 (타이핑 효과) -->
     <div class="question-wrap">
       <div class="speech-bubble">
         <span id="question-text" class="question-text"></span>
       </div>
     </div>
 
-    <!-- 평가 카드 영역 -->
     <div class="evaluate-area">
       <div class="evaluate-card" id="evaluate-card">
         <div class="evaluate-icon-wrap">
@@ -29,7 +26,6 @@
       </div>
     </div>
 
-    <!-- 아래 엄지 아이콘 (왼쪽: 만족, 오른쪽: 후회) -->
     <div class="thumb-row">
       <div class="thumb thumb-left">
         <img src="image/tup.png" alt="만족한 소비" />
@@ -39,11 +35,9 @@
       </div>
     </div>
 
-    <!-- 페이지 인디케이터 -->
     <div class="dots" id="dots"></div>
   </div>
 
-  <!-- 튜토리얼 오버레이 -->
   <div class="tutorial-overlay" id="tutorial-overlay">
     <div class="tutorial-card">
       <h3 class="tutorial-title">소비 평가 방법</h3>
@@ -144,6 +138,9 @@
       renderDots();
     }
 
+    // ============================================================
+    // ✅ [수정됨] 평가 완료 시 결과를 Python 서버로 전송하는 부분
+    // ============================================================
     function finishAll() {
       cardEl.classList.add("hidden");
       thumbRowEl.classList.add("hidden");
@@ -152,13 +149,34 @@
       // 씨앗 말풍선 문구 변경
       questionEl.textContent = "평가를 완료했습니다!";
 
-      console.log("swipe results:", results);
+      console.log("전송할 데이터:", results);
 
-      // 잠깐 보여준 뒤 홈(index.html)으로 이동
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 1500);
+      // Python 서버(/save_evaluation)로 결과 전송
+      fetch('http://localhost:5000/save_evaluation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ results: results })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          console.log("DB 저장 성공!");
+          // 1.5초 뒤 홈으로 이동
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1500);
+        } else {
+          alert("저장 중 오류 발생: " + data.message);
+        }
+      })
+      .catch(err => {
+        console.error("서버 연결 실패:", err);
+        alert("서버(app.py)가 켜져 있는지 확인해주세요.");
+      });
     }
+    // ============================================================
 
     function goNext(decision) {
       const expenseIndex = indicesToJudge[currentPos];
@@ -183,11 +201,11 @@
     let startY = 0;
     let currentX = 0;
     let currentY = 0;
-    let dragDirection = null; // 'horizontal' | 'vertical' | null
+    let dragDirection = null; 
 
-    const THRESHOLD_X = 80; // 좌우 스와이프 최소 거리
-    const THRESHOLD_Y = 40; // 아래 스와이프 최소 거리
-    const MAX_DIST = 160;   // 흐려지는 기준 거리
+    const THRESHOLD_X = 80; 
+    const THRESHOLD_Y = 40; 
+    const MAX_DIST = 160; 
 
     function pointerDown(e) {
       if (tutorialVisible) return;
