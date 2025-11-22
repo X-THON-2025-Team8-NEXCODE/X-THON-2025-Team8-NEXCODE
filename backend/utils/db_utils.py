@@ -59,7 +59,8 @@ def create_initial_table(user_id):
             category VARCHAR(100),
             price INT NOT NULL,
             time_text INT,
-            sentiment VARCHAR(50)
+            sentiment VARCHAR(50),
+            created_at DATETIME NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         """
 
@@ -98,7 +99,7 @@ def insert_expenses_data(user_id, merchant, category, price, hour, sentiment, re
         if conn:
             conn.close()
 
-def insert_initial_data(user_id, item_name, category, price, time_text, sentiment):
+def insert_initial_data(user_id, item_name, category, price, time_text, sentiment, created_at):
     table_name = f'{user_id}_initial'
     conn = None
     try:
@@ -107,13 +108,13 @@ def insert_initial_data(user_id, item_name, category, price, time_text, sentimen
         
         insert_query = f"""
         INSERT INTO {table_name} 
-        (item_name, category, price, time_text, sentiment) 
+        (item_name, category, price, time_text, sentiment, created_at) 
         VALUES (%s, %s, %s, %s, %s)
         """
         
         cursor.execute(
             insert_query, 
-            (item_name, category, price, time_text, sentiment)
+            (item_name, category, price, time_text, sentiment, created_at)
         )
         conn.commit()
         print(f"테이블 '{table_name}'에 데이터 삽입 성공.")
