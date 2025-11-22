@@ -7,10 +7,8 @@ from flask_cors import CORS
 import pymysql
 import json
 import sys
-<<<<<<< Updated upstream
-=======
 from datetime import timedelta, datetime
->>>>>>> Stashed changes
+
 
 if sys.stdout.encoding != 'utf-8':
 	sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', buffering=1)
@@ -242,8 +240,6 @@ def ask():
     else:
         return jsonify({"status":"success","ask":f"답변: {result['analysis']['message']}", "decision": f"판단: {result['decision']['verdict']} (위험도: {result['decision']['risk_score']})"})
 
-<<<<<<< Updated upstream
-=======
 EXPENSES_INFO = {
     0: {"title": "메가커피", "amount": 3900, "category": "카페", "created_at": "2025-11-23 00:50:00"},
     1: {"title": "메가커피", "amount": 4500, "category": "카페", "created_at": "2025-11-23 00:50:00"},
@@ -381,7 +377,6 @@ def save_evaluation_api():
     except Exception as e:
         print(f"평가 저장 실패: {e}")
         return jsonify({"status": "error", "message": str(e)})
->>>>>>> Stashed changes
 
 if __name__ == '__main__':
 	app.run(host="0.0.0.0", port=16010, debug=False, ssl_context=('./cert_nexcode.kr/nexcode.kr.cer', './cert_nexcode.kr/nexcode.kr.key'))
