@@ -1,7 +1,7 @@
-from utils.db_utils import create_expenses_table, create_initial_table, insert_expenses_data, insert_initial_data, save_update_kakao_user
-from utils.openai_utils import ask_ai, classify_category
 import os
 import requests
+from utils.db_utils import create_expenses_table, create_initial_table, insert_expenses_data, insert_initial_data, save_update_kakao_user, get_expenses
+from utils.openai_utils import ask_ai, classify_category
 from flask import Flask, jsonify, request, redirect, session
 from flask_cors import CORS
 import pymysql
@@ -14,14 +14,14 @@ if sys.stderr.encoding != 'utf-8':
 	sys.stderr = open(sys.stderr.fileno(), mode='w', encoding='utf-8', buffering=1)
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.urandom(24) 
 CORS(app)
 
 def get_db_connection():
 	try:
 		conn = pymysql.connect(
-			host="secuho.life",
-			port=53306,
+			host="127.0.0.1",
+			port=3306,
 			user="nexcodecs",
 			password="sprtmzhemWkd1234!!",
 			db="xthon",
@@ -190,13 +190,37 @@ def buy():
 	regret_flag = data.get("regret_flag")
 	created_at = data.get("created_at")
 	
+	print(category)
+	
 	try:
 		create_expenses_table(user_id)
 		insert_expenses_data(user_id, merchant, category, price, hour, sentiment, regret_flag, created_at)
 		
 		return jsonify({"status":"success","message":"구매 내역이 성공적으로 기록되었습니다."})
 	except Exception as e:
+		print(e)
 		return jsonify({"status":"fail","message":f"구매 내역 기록 중 에러 발생: {str(e)}"})
+
+@app.route('/api/expenses', methods=['POST'])
+def expenses():
+	data = request.get_json()
+ 
+	if not all(k in data for k in ["user_id", "item_name", "price", "created_at"]):
+		return jsonify({"status": "fail", "message": "필수 데이터(user_id, item_name, price, created_at)가 누락되었습니다."}), 400
+	
+	user_id = data.get("user_id")
+	date = data.get("date")
+	
+	try:
+		result = get_expenses(user_id, date)
+		
+		if result != None:
+			jsonify({"status":"success","message":"해당 날짜의 지출 내역을 성공적으로 불러왔습니다.", "data": result})
+		else:
+			return jsonify({"status":"fail","message":"해당 날짜의 지출 내역이 없습니다."})
+	except Exception as e:
+		print(e)
+		return jsonify({"status":"fail","message":f"초기 지출 내역 기록 중 에러 발생: {str(e)}"})
 
 @app.route('/api/ai', methods=['POST'])
 def ask():

@@ -2,18 +2,18 @@ import pymysql
 
 def get_db():
     conn = pymysql.connect(
-			host="secuho.life",
-			port=53306,
-			user="nexcodecs",
-			password="sprtmzhemWkd1234!!",
-			db="users",
-			charset="utf8mb4",
+		host="127.0.0.1",
+		port=3306,
+		user="nexcodecs",
+		password="sprtmzhemWkd1234!!",
+		db="users",
+		charset="utf8mb4"
     )
-    
     return conn
 
+
 def save_update_kakao_user(user_id, nickname, image):
-    conn = get_db_connection()
+    conn = get_db()
     if not conn:
         return False
 
@@ -21,7 +21,7 @@ def save_update_kakao_user(user_id, nickname, image):
         with conn.cursor() as cursor:
             # 1. users 테이블이 없으면 생성
             create_table_sql = """
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE IF NOT EXISTS xthon.users (
                 user_id BIGINT PRIMARY KEY,
                 nickname VARCHAR(100),
                 image TEXT,
@@ -34,7 +34,7 @@ def save_update_kakao_user(user_id, nickname, image):
             # 2. 유저 정보 저장 (이미 존재하면 닉네임과 이미지만 업데이트)
             # INSERT ... ON DUPLICATE KEY UPDATE 구문 사용
             sql = """
-            INSERT INTO users (user_id, nickname, image)
+            INSERT INTO xthon.users (user_id, nickname, image)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE
                 nickname = VALUES(nickname),
@@ -56,7 +56,7 @@ def save_update_kakao_user(user_id, nickname, image):
 def create_expenses_table(user_id):
     table_name = f'{user_id}_expenses'
     print(f"테이블 '{table_name}' 생성을 시도합니다.")
-
+    
     conn = None
     try:
         conn = get_db()
@@ -66,7 +66,7 @@ def create_expenses_table(user_id):
         CREATE TABLE IF NOT EXISTS {table_name} (
             id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             merchant VARCHAR(255) NOT NULL,
-            category VARCHAR(100),
+            category VARCHAR(255),
             price INT NOT NULL,
             hour INT,
             sentiment VARCHAR(50),
@@ -74,7 +74,7 @@ def create_expenses_table(user_id):
             created_at DATETIME NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         """
-
+        
         cursor.execute(sql_query)
         conn.commit()
         print(f"테이블 '{table_name}'이 성공적으로 생성되었거나 이미 존재합니다.")
@@ -161,6 +161,38 @@ def insert_initial_data(user_id, item_name, category, price, time_text, sentimen
         print(f"테이블 '{table_name}'에 데이터 삽입 성공.")
     except pymysql.Error as e:
         print(f"MySQL 삽입 오류 발생: {e}")
+    finally:
+        if conn:
+            conn.close()
+            
+def get_expenses(user_id, date):
+    table_name = f'{user_id}_expenses'
+    conn = None
+    results = []
+    try:
+        conn = get_db()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        
+        if date:
+            query = f"""
+            SELECT * FROM {table_name} 
+            WHERE DATE(created_at) = %s
+            ORDER BY created_at DESC
+            """
+            cursor.execute(query, (date,))
+        else:
+            query = f"""
+            SELECT * FROM {table_name} 
+            ORDER BY created_at DESC
+            """
+            cursor.execute(query)
+        
+        results = cursor.fetchall()
+        print(f"테이블 '{table_name}'에서 데이터 조회 성공.")
+        return results if results else None
+    except pymysql.Error as e:
+        print(f"MySQL 조회 오류 발생: {e}")
+        return None
     finally:
         if conn:
             conn.close()

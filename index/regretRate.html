@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buy-bye 메인</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <style>
+    /* === 기본 설정 === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: "Pretendard", -apple-system, sans-serif;
+
+  background-image: url("./image/background.png");
+
+  /* 2. 화면에 꽉 차게 조절 */
+  background-size: cover;
+  
+  /* 3. 사진 중앙 정렬 & 반복 안 함 */
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  /* ▲▲▲ 여기까지 ▲▲▲ */
+
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+    }
+
+    .app-frame {
+      width: 100vw;
+      max-width: 480px;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      overflow-y: auto; /* 내용이 길어지면 스크롤 */
+    }
+    /* 스크롤바 숨김 */
+    .app-frame::-webkit-scrollbar { display: none; }
+
+    /* === 1. 상단 (기존 UI 재현) === */
+    .header-area {
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    .home-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 50px;
+    }
+    .home-btn img { width: 40px; }
+    .home-text { font-size: 11px; color: #666; margin-top: 2px; font-weight: 600; }
+
+    .character-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .char-img {
+      width: 160px;
+      height: 160px;
+      object-fit: cover;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 15px 20px rgba(0,0,0,0.1));
+    }
+    .main-msg {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #000;
+      margin-bottom: 20px;
+    }
+
+    /* 레벨 바 영역 */
+    .level-container {
+      width: 100%;
+      padding: 0 10px;
+      margin-bottom: 40px;
+    }
+    .level-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    /* 1. 막대기 배경 (빈 부분) - 사진처럼 은은한 반투명 흰색으로 변경 */
+.level-bar-bg {
+  width: 100%;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.5); /* 투명도 있는 흰색 */
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* 2. 채워지는 부분 (그라데이션 적용) */
+.level-bar-fill {
+  width: 60%; /* 레벨 퍼센트 */
+  height: 100%;
+  
+/* 진한색(왼쪽/0%) -> 연한색(오른쪽/100%) */
+background: linear-gradient(90deg, #5de39e 0%, #9bfcc8 100%);
+  
+  border-radius: 20px;
+  /* 그림자도 살짝 줘서 더 입체감 있게 */
+  box-shadow: 0 0 15px rgba(93, 227, 158, 0.4); 
+}
+    /* === 2. [추천] 하단 후회율 순위 카드 === */
+    .regret-card {
+      background: #ffffff;
+      border-radius: 30px;
+      padding: 25px 25px 35px; /* 하단을 좀 더 넉넉하게 */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #000;
+      margin-bottom: 20px;
+      text-align: center; /* 제목 가운데 정렬 */
+    }
+
+    /* 랭킹 리스트 아이템 */
+    .rank-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .rank-item:last-child { margin-bottom: 0; }
+
+    /* 왼쪽: 순위 동그라미 */
+    .rank-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #F1F3F5; /* 기본 회색 */
+      color: #868E96;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 800;
+      font-size: 1rem;
+      margin-right: 15px;
+      flex-shrink: 0; /* 찌그러짐 방지 */
+    }
+    /* 1등만 강조 (연두색 테마) */
+    .rank-badge.first {
+      background: #C3F4D0; /* 연한 초록 */
+      color: #267A4B;       /* 진한 초록 글씨 */
+      font-size: 1.1rem;
+    }
+
+    /* 오른쪽: 내용물 (이름 + 게이지) */
+    .rank-content {
+      flex: 1; /* 남은 공간 다 차지 */
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* 텍스트 줄 (카테고리명 ... 40%) */
+    .rank-text-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #333;
+    }
+    .percent-text {
+      font-size: 0.9rem;
+      color: #333;
+    }
+
+    /* 후회율 게이지 바 */
+    .regret-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: #F0F0F0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    /* 후회율이니까 '경고' 느낌으로 붉은/주황 계열 그라데이션 추천!
+       (초록색 배경이랑 대비되어 잘 보임)
+    */
+    .regret-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      /* 부드러운 코랄~오렌지 그라데이션 */
+      background: linear-gradient(90deg, #FF9A9E 0%, #FECFEF 100%); 
+      /* 혹은 단색을 원하면: background: #FF8787; */
+    }
+    
+    /* 1위만 색상을 좀 더 진하게? (선택사항) */
+    .regret-bar-fill.high {
+      background: linear-gradient(90deg, #ff758c 0%, #ff7eb3 100%);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-frame">
+    
+    <div class="header-area">
+      <button class="home-btn" onclick="location.href='index.html'">
+  
+        <img src="./image/home.png" alt="home"> 
+        <span class="home-text">홈 화면</span>
+      </button>
+    </div>
+
+    <div class="character-area">
+      <img src="./image/seed.png" class="char-img" alt="character">
+      <div class="main-msg">" 당신의 소비 성향은 절제형입니다. "</div>
+    </div>
+
+    <div class="level-container">
+      <div class="level-info">
+        <span>Lv. 1</span>
+        <span>60%</span>
+      </div>
+      <div class="level-bar-bg">
+        <div class="level-bar-fill"></div>
+      </div>
+    </div>
+
+    <div class="regret-card">
+      <div class="card-title">후회율이 가장 높은 카테고리 😢</div>
+
+      <div class="rank-item">
+        <div class="rank-badge first">1</div>
+        <div class="rank-content">
+          <div class="rank-text-row">
+            <span>식비</span>
+            <span class="percent-text">40%</span>
+          </div>
+          <div class="regret-bar-bg">
+            <div class="regret-bar-fill high" style="width: 40%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rank-item">
+        <div class="rank-badge">2</div>
+        <div class="rank-content">
+          <div class="rank-text-row">
+            <span>패션</span>
+            <span class="percent-text">40%</span>
+          </div>
+          <div class="regret-bar-bg">
+            <div class="regret-bar-fill" style="width: 40%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rank-item">
+        <div class="rank-badge">3</div>
+        <div class="rank-content">
+          <div class="rank-text-row">
+            <span>뷰티</span>
+            <span class="percent-text">40%</span>
+          </div>
+          <div class="regret-bar-bg">
+            <div class="regret-bar-fill" style="width: 40%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rank-item">
+        <div class="rank-badge">4</div>
+        <div class="rank-content">
+          <div class="rank-text-row">
+            <span>학업</span>
+            <span class="percent-text">40%</span>
+          </div>
+          <div class="regret-bar-bg">
+            <div class="regret-bar-fill" style="width: 40%;"></div>
+          </div>
+        </div>
+      </div>
+
+       <div class="rank-item">
+        <div class="rank-badge">5</div>
+        <div class="rank-content">
+          <div class="rank-text-row">
+            <span>구독료</span>
+            <span class="percent-text">40%</span>
+          </div>
+          <div class="regret-bar-bg">
+            <div class="regret-bar-fill" style="width: 40%;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+
+</body>
+</html>
