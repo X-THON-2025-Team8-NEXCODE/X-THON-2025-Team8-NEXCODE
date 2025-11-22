@@ -1,7 +1,7 @@
-from utils.db_utils import create_expenses_table, create_initial_table, insert_expenses_data, insert_initial_data, save_update_kakao_user
-from utils.openai_utils import ask_ai, classify_category
 import os
 import requests
+from utils.db_utils import create_expenses_table, create_initial_table, insert_expenses_data, insert_initial_data, save_update_kakao_user
+from utils.openai_utils import ask_ai, classify_category
 from flask import Flask, jsonify, request, redirect, session
 from flask_cors import CORS
 import pymysql
@@ -20,8 +20,8 @@ CORS(app)
 def get_db_connection():
 	try:
 		conn = pymysql.connect(
-			host="secuho.life",
-			port=53306,
+			host="127.0.0.1",
+			port=3306,
 			user="nexcodecs",
 			password="sprtmzhemWkd1234!!",
 			db="xthon",
@@ -190,12 +190,15 @@ def buy():
 	regret_flag = data.get("regret_flag")
 	created_at = data.get("created_at")
 	
+	print(category)
+	
 	try:
 		create_expenses_table(user_id)
 		insert_expenses_data(user_id, merchant, category, price, hour, sentiment, regret_flag, created_at)
 		
 		return jsonify({"status":"success","message":"구매 내역이 성공적으로 기록되었습니다."})
 	except Exception as e:
+		print(e)
 		return jsonify({"status":"fail","message":f"구매 내역 기록 중 에러 발생: {str(e)}"})
 
 @app.route('/api/ai', methods=['POST'])
