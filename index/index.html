@@ -9,7 +9,7 @@
 <body>
   <div class="page">
     <!-- 헤더 -->
-    <header class="app-header">
+    <header class="app-header" style="margin-top: 48px;">
       <button class="icon-btn" aria-label="알림">
         <img src="image/alarm.png" alt="알림 아이콘" />
       </button>
@@ -83,7 +83,6 @@
     <!-- 가계부 / 후회도 / 소비 평가 -->
     <section class="actions-card">
       <div class="actions-row">
-        
         <button class="action-item" onclick="location.href='calendar.html'">
           <img src="image/calendar.png" alt="가계부 아이콘" />
           <span class="action-label">가계부</span>
@@ -113,7 +112,7 @@
     const expenses = [
       {
         icon: "M",
-        iconSrc: "image/mgc.png",      // 🔹 메가커피 이미지
+        iconSrc: "image/mgc.png",      // 메가커피 이미지
         title: "메가커피",
         subtitle: "메가커피 · 카카오뱅크",
         tag: "카페",
@@ -121,7 +120,7 @@
       },
       {
         icon: "N",
-        iconSrc: "image/netflix.png",  // 🔹 넷플릭스 이미지
+        iconSrc: "image/netflix.png",  // 넷플릭스 이미지
         title: "넷플릭스",
         subtitle: "넷플릭스 · 카카오페이",
         tag: "구독",
@@ -129,7 +128,7 @@
       },
       {
         icon: "B",
-        iconSrc: "image/bmin.png",     // 🔹 배민 이미지
+        iconSrc: "image/bmin.png",     // 배민 이미지
         title: "배달의 민족",
         subtitle: "페페로니 피자 P 세트",
         tag: "배달",
@@ -203,7 +202,7 @@
       .getElementById("refresh-btn")
       .addEventListener("click", () => location.reload());
 
-    // 🔹 소비 평가 버튼 → swipe.html 이동
+    // 소비 평가 버튼 → swipe.html 이동
     document
       .getElementById("review-button")
       .addEventListener("click", () => {
