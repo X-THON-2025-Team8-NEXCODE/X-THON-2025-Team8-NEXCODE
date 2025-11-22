@@ -164,3 +164,35 @@ def insert_initial_data(user_id, item_name, category, price, time_text, sentimen
     finally:
         if conn:
             conn.close()
+            
+def get_expenses(user_id, date):
+    table_name = f'{user_id}_expenses'
+    conn = None
+    results = []
+    try:
+        conn = get_db()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        
+        if date:
+            query = f"""
+            SELECT * FROM {table_name} 
+            WHERE DATE(created_at) = %s
+            ORDER BY created_at DESC
+            """
+            cursor.execute(query, (date,))
+        else:
+            query = f"""
+            SELECT * FROM {table_name} 
+            ORDER BY created_at DESC
+            """
+            cursor.execute(query)
+        
+        results = cursor.fetchall()
+        print(f"테이블 '{table_name}'에서 데이터 조회 성공.")
+        return results if results else None
+    except pymysql.Error as e:
+        print(f"MySQL 조회 오류 발생: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()

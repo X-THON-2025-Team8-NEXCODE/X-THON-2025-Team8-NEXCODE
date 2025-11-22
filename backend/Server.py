@@ -1,6 +1,6 @@
 import os
 import requests
-from utils.db_utils import create_expenses_table, create_initial_table, insert_expenses_data, insert_initial_data, save_update_kakao_user
+from utils.db_utils import create_expenses_table, create_initial_table, insert_expenses_data, insert_initial_data, save_update_kakao_user, get_expenses
 from utils.openai_utils import ask_ai, classify_category
 from flask import Flask, jsonify, request, redirect, session
 from flask_cors import CORS
@@ -200,6 +200,27 @@ def buy():
 	except Exception as e:
 		print(e)
 		return jsonify({"status":"fail","message":f"구매 내역 기록 중 에러 발생: {str(e)}"})
+
+@app.route('/api/expenses', methods=['POST'])
+def expenses():
+	data = request.get_json()
+ 
+	if not all(k in data for k in ["user_id", "item_name", "price", "created_at"]):
+		return jsonify({"status": "fail", "message": "필수 데이터(user_id, item_name, price, created_at)가 누락되었습니다."}), 400
+	
+	user_id = data.get("user_id")
+	date = data.get("date")
+	
+	try:
+		result = get_expenses(user_id, date)
+		
+		if result != None:
+			jsonify({"status":"success","message":"해당 날짜의 지출 내역을 성공적으로 불러왔습니다.", "data": result})
+		else:
+			return jsonify({"status":"fail","message":"해당 날짜의 지출 내역이 없습니다."})
+	except Exception as e:
+		print(e)
+		return jsonify({"status":"fail","message":f"초기 지출 내역 기록 중 에러 발생: {str(e)}"})
 
 @app.route('/api/ai', methods=['POST'])
 def ask():
