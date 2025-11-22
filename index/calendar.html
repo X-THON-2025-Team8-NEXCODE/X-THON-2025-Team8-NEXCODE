@@ -13,18 +13,11 @@
     
     body {
       font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif;
-  
-  /* ▼▼▼ 기존 색상 코드를 지우고 아래 코드를 복사해서 넣으세요 ▼▼▼ */
-  
-  /* 배경 이미지 경로 (아까 로그인 화면 때처럼 경로를 잘 맞춰주세요!) */
+
       background-image: url("./image/background.png");
-  
-  /* 배경 이미지가 화면에 꽉 차게 설정 */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-
-  /* ▲▲▲ 여기까지 ▲▲▲ */
 
       height: 100vh;
       display: flex;
@@ -91,35 +84,34 @@
       border-radius: 30px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.05);
       padding: 30px 20px;
-      flex: none;       
+      flex: none;
       height: auto;
       display: flex;
       flex-direction: column;
     }
-    
+
     .date-cell.today {
       background-color: #d7fed9 !important; 
-      color: #3b691f;            
-      font-weight: 900;          
-      border-radius: 12px;       
+      color: #3b691f;
+      font-weight: 900;
+      border-radius: 12px;
     }
 
-    /* 캘린더 헤더 (10월 - 2025년 11월 - 12월) */
+    /* 캘린더 헤더 */
     .cal-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start; /* 위쪽 정렬 */
+      align-items: flex-start;
       margin-bottom: 30px;
       padding: 0 10px;
       position: relative;
       z-index: 100;
     }
 
-    /* 양옆 흐린 달 (10월, 12월) */
     .side-month {
       font-size: 1.3rem;
       font-weight: 700;
-      color: #aaa; /* 흐린 회색 */
+      color: #aaa;
       cursor: pointer;
       transition: color 0.2s;
     }
@@ -127,30 +119,29 @@
       color: #555;
     }
 
-    /* 가운데 현재 년/월 */
     .center-date {
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
+      gap: 4px;
     }
-    .year-select {
+
+    .year-select-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .year-display {
       font-size: 1rem;
       font-weight: 700;
-      color: #333;
-      margin-bottom: 4px;
+      color: #555;
       cursor: pointer;
-  
-  /* 셀렉트 박스 테두리 없애고 글자처럼 만들기 */
-      border: none;
-      background: transparent;
-      text-align: center;
-      outline: none; /* 클릭했을 때 파란 테두리 제거 */
-  
-  /* (선택사항) 화살표 아이콘 숨기기 - 깔끔하게 */
-      -webkit-appearance: none; 
-      appearance: none; 
-      
+    }
+
+    .year-select {
+      display: none; /* 로직용, UI에서는 숨김 */
     }
 
     .month-text {
@@ -158,8 +149,7 @@
       font-weight: 900;
       color: #000;
       line-height: 1;
-  /* cursor: pointer;  <-- 이 줄을 지우거나 아래처럼 default로 바꿈 */
-      cursor: default; 
+      cursor: pointer;
     }
 
     /* 요일 (일 월 화 ...) */
@@ -174,7 +164,6 @@
       font-weight: 600;
       color: #888;
     }
-    /* 일요일 빨강, 토요일 파랑 */
     .day-name.sun { color: #e55039; }
     .day-name.sat { color: #3c6382; }
 
@@ -182,7 +171,7 @@
     .dates-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 10px 0; /* 세로 간격 */
+      gap: 10px 0;
       text-align: center;
     }
     .date-cell {
@@ -197,7 +186,6 @@
       border-radius: 12px;
       transition: background 0.2s;
     }
-    /* 오늘 날짜 강조 (필요하면 사용) */
     .date-cell.today {
       background-color: #dff9fb;
       color: #22a6b3;
@@ -206,13 +194,110 @@
     .date-cell:hover {
       background-color: #f0f0f0;
     }
-    /* 빈 칸 */
-    .date-cell.empty { cursor: default; pointer-events: none; }
-    
-    /* 주말 색상 (날짜) */
+    .date-cell.empty {
+      cursor: default;
+      pointer-events: none;
+    }
     .date-cell.sun { color: #e55039; }
     .date-cell.sat { color: #3c6382; }
 
+    /* ---------- 휠 모달 ---------- */
+
+    .hidden {
+      display: none !important;
+    }
+
+    .wheel-modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      background: rgba(0, 0, 0, 0.25);
+      z-index: 999;
+    }
+
+    .wheel-panel {
+      width: 100%;
+      max-width: 480px;
+      background: #fdfdfd;
+      border-radius: 24px 24px 0 0;
+      padding: 10px 20px 20px;
+      box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.18);
+      animation: slideUp 0.2s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .wheel-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 999px;
+      background: #d2d6e0;
+      margin: 4px auto 10px;
+    }
+
+    .wheel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .wheel-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #555;
+    }
+
+    .wheel-close-btn {
+      border: none;
+      background: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #4b7bec;
+      cursor: pointer;
+    }
+
+    .wheel-body {
+      position: relative;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 8px 0 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .wheel-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .wheel-item {
+      width: 100%;
+      max-width: 260px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      color: #a0a3b1;
+      cursor: pointer;
+      border-radius: 999px;
+      transition: all 0.15s ease;
+    }
+
+    .wheel-item.selected {
+      background: #eef1ff;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #222;
+      box-shadow: 0 4px 10px rgba(155, 167, 255, 0.35);
+    }
   </style>
 </head>
 <body>
@@ -240,11 +325,43 @@
         <div class="side-month" id="prevMonthBtn" onclick="changeMonth(-1)">10월</div>
         
         <div class="center-date">
-          <select id="yearSelect" class="year-select" onchange="changeYear()">
-            <option value="2024">2024년</option>
-            <option value="2025" selected>2025년</option>
-          </select>
-          <div class="month-text" id="currentMonth">11월</div>
+          <div class="year-select-wrap">
+            <span id="yearDisplay" class="year-display" onclick="openWheel('year')">2025년</span>
+
+            <!-- 내부 로직용 select (숨김) -->
+            <select id="yearSelect" class="year-select" onchange="changeYear()">
+              <!-- 2024 ~ 2050 -->
+              <option value="2024">2024년</option>
+              <option value="2025">2025년</option>
+              <option value="2026">2026년</option>
+              <option value="2027">2027년</option>
+              <option value="2028">2028년</option>
+              <option value="2029">2029년</option>
+              <option value="2030">2030년</option>
+              <option value="2031">2031년</option>
+              <option value="2032">2032년</option>
+              <option value="2033">2033년</option>
+              <option value="2034">2034년</option>
+              <option value="2035">2035년</option>
+              <option value="2036">2036년</option>
+              <option value="2037">2037년</option>
+              <option value="2038">2038년</option>
+              <option value="2039">2039년</option>
+              <option value="2040">2040년</option>
+              <option value="2041">2041년</option>
+              <option value="2042">2042년</option>
+              <option value="2043">2043년</option>
+              <option value="2044">2044년</option>
+              <option value="2045">2045년</option>
+              <option value="2046">2046년</option>
+              <option value="2047">2047년</option>
+              <option value="2048">2048년</option>
+              <option value="2049">2049년</option>
+              <option value="2050">2050년</option>
+            </select>
+          </div>
+
+          <div class="month-text" id="currentMonth" onclick="openWheel('month')">11월</div>
         </div>
         
         <div class="side-month" id="nextMonthBtn" onclick="changeMonth(1)">12월</div>
@@ -260,112 +377,190 @@
         <div class="day-name sat">토</div>
       </div>
 
-      <div class="dates-grid" id="datesContainer">
-        </div>
+      <div class="dates-grid" id="datesContainer"></div>
 
+    </div>
+  </div>
+
+  <!-- ===== 휠 모달 ===== -->
+  <div id="wheelModal" class="wheel-modal hidden">
+    <div class="wheel-panel">
+      <div class="wheel-handle"></div>
+      <div class="wheel-header">
+        <span id="wheelTitle" class="wheel-title">연도 선택</span>
+        <button type="button" class="wheel-close-btn" onclick="closeWheel()">완료</button>
+      </div>
+      <div class="wheel-body">
+        <div id="wheelList" class="wheel-list"></div>
+      </div>
     </div>
   </div>
 
   <script>
     // === 설정 ===
     let today = new Date();
-    let currentYear = 2025; // 기본 2025년 시작
-    let currentMonth = 11;  // 기본 11월 시작
+    let currentYear = today.getFullYear();         // 오늘 연도 기준
+    let currentMonth = today.getMonth() + 1;       // 오늘 월 기준 (1~12)
+
+    // 범위 밖이면 2024~2050 안으로 보정
+    if (currentYear < 2024) currentYear = 2024;
+    if (currentYear > 2050) currentYear = 2050;
 
     // HTML 요소 가져오기
-    const yearSelect = document.getElementById('yearSelect');
-    const monthEl = document.getElementById('currentMonth');
-    const prevBtn = document.getElementById('prevMonthBtn');
-    const nextBtn = document.getElementById('nextMonthBtn');
-    const datesContainer = document.getElementById('datesContainer');
+    const yearSelect      = document.getElementById('yearSelect');
+    const yearDisplay     = document.getElementById('yearDisplay');
+    const monthEl         = document.getElementById('currentMonth');
+    const prevBtn         = document.getElementById('prevMonthBtn');
+    const nextBtn         = document.getElementById('nextMonthBtn');
+    const datesContainer  = document.getElementById('datesContainer');
+
+    // 휠 관련 요소
+    const wheelModal = document.getElementById('wheelModal');
+    const wheelTitle = document.getElementById('wheelTitle');
+    const wheelList  = document.getElementById('wheelList');
+    let wheelMode    = null; // 'year' | 'month' | null
 
     // 1. 달력 그리기 함수
-   function renderCalendar() {
-  // (중요) 드롭다운의 년도를 현재 년도와 맞춤
-  yearSelect.value = currentYear; 
-  monthEl.innerText = `${currentMonth}월`;
+    function renderCalendar() {
+      // 드롭다운 및 표시 텍스트 동기화
+      if (yearSelect) {
+        yearSelect.value = String(currentYear);
+      }
+      if (yearDisplay) {
+        yearDisplay.textContent = `${currentYear}년`;
+      }
+      monthEl.innerText = `${currentMonth}월`;
 
-  // 양옆 월 표시 계산
-  let prevM = currentMonth - 1;
-  let nextM = currentMonth + 1;
-  if (prevM < 1) prevM = 12;
-  if (nextM > 12) nextM = 1;
+      // 양옆 월 표시 계산
+      let prevM = currentMonth - 1;
+      let nextM = currentMonth + 1;
+      if (prevM < 1) prevM = 12;
+      if (nextM > 12) nextM = 1;
 
-  prevBtn.innerText = `${prevM}월`;
-  nextBtn.innerText = `${nextM}월`;
+      prevBtn.innerText = `${prevM}월`;
+      nextBtn.innerText = `${nextM}월`;
 
-  // 날짜 비우기
-  datesContainer.innerHTML = '';
+      // 날짜 비우기
+      datesContainer.innerHTML = '';
 
-  // 달력 로직
-  const firstDay = new Date(currentYear, currentMonth - 1, 1);
-  const lastDay = new Date(currentYear, currentMonth, 0);
-  const startDayOfWeek = firstDay.getDay();
-  const totalDays = lastDay.getDate();
+      // 달력 로직
+      const firstDay = new Date(currentYear, currentMonth - 1, 1);
+      const lastDay  = new Date(currentYear, currentMonth, 0);
+      const startDayOfWeek = firstDay.getDay();
+      const totalDays      = lastDay.getDate();
 
-  // 빈 칸 채우기
-  for (let i = 0; i < startDayOfWeek; i++) {
-    const emptyDiv = document.createElement('div');
-    emptyDiv.classList.add('date-cell', 'empty');
-    datesContainer.appendChild(emptyDiv);
-  }
+      // 빈 칸 채우기
+      for (let i = 0; i < startDayOfWeek; i++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.classList.add('date-cell', 'empty');
+        datesContainer.appendChild(emptyDiv);
+      }
 
-  // 날짜 채우기
-  for (let d = 1; d <= totalDays; d++) {
-    const dateDiv = document.createElement('div');
-    dateDiv.classList.add('date-cell');
-    dateDiv.innerText = d;
+      // 날짜 채우기
+      for (let d = 1; d <= totalDays; d++) {
+        const dateDiv = document.createElement('div');
+        dateDiv.classList.add('date-cell');
+        dateDiv.innerText = d;
 
-    const checkDay = new Date(currentYear, currentMonth - 1, d).getDay();
-    if (checkDay === 0) dateDiv.classList.add('sun');
-    if (checkDay === 6) dateDiv.classList.add('sat');
+        const checkDay = new Date(currentYear, currentMonth - 1, d).getDay();
+        if (checkDay === 0) dateDiv.classList.add('sun');
+        if (checkDay === 6) dateDiv.classList.add('sat');
 
-    // ▼▼▼ [여기 추가됨] 오늘 날짜인지 확인해서 하이라이트 주기! ▼▼▼
-    if (currentYear === today.getFullYear() && 
-        currentMonth === (today.getMonth() + 1) && 
-        d === today.getDate()) {
-      dateDiv.classList.add('today');
+        if (
+          currentYear === today.getFullYear() &&
+          currentMonth === (today.getMonth() + 1) &&
+          d === today.getDate()
+        ) {
+          dateDiv.classList.add('today');
+        }
+
+        dateDiv.onclick = function() {
+          location.href = `calendarBuyList.html?year=${currentYear}&month=${currentMonth}&day=${d}`;
+        };
+
+        datesContainer.appendChild(dateDiv);
+      }
     }
-    // ▲▲▲ 여기까지 ▲▲▲
 
-    dateDiv.onclick = function() {
-  // 주소 뒤에 년, 월, 일 정보를 붙여서 detail.html로 이동합니다.
-  // 예: detail.html?year=2025&month=11&day=15
-    location.href = `calendarBuyList.html?year=${currentYear}&month=${currentMonth}&day=${d}`;
-  };
-    datesContainer.appendChild(dateDiv);
-  }
-}
-
-    // 2. 월 이동 함수 (< 10월, 12월 > 버튼)
+    // 2. 월 이동 함수
     function changeMonth(step) {
       currentMonth += step;
 
       if (currentMonth > 12) {
         currentMonth = 1;
         currentYear++;
+        if (currentYear > 2050) currentYear = 2050;
       } else if (currentMonth < 1) {
         currentMonth = 12;
         currentYear--;
+        if (currentYear < 2024) currentYear = 2024;
       }
       renderCalendar();
     }
 
-    // 3. 년도 선택 변경 시 실행되는 함수 (새로 추가됨!)
+    // 3. 연도 select 변경 시
     function changeYear() {
-      // 드롭다운에서 선택한 값을 숫자로 가져와서 반영
-      currentYear = parseInt(yearSelect.value);
+      currentYear = parseInt(yearSelect.value, 10);
+      if (currentYear < 2024) currentYear = 2024;
+      if (currentYear > 2050) currentYear = 2050;
       renderCalendar();
     }
 
-    // 4. 홈 버튼 이동
+    // 홈 버튼 이동
     function goHome() {
-       location.href = 'index.html'; 
+      location.href = 'index.html'; 
+    }
+
+    // ===== 휠 관련 함수 =====
+
+    function openWheel(mode) {
+      wheelMode = mode;
+      wheelList.innerHTML = '';
+
+      if (mode === 'year') {
+        wheelTitle.textContent = '연도 선택';
+        for (let y = 2024; y <= 2050; y++) {
+          const item = document.createElement('div');
+          item.className = 'wheel-item';
+          if (y === currentYear) item.classList.add('selected');
+          item.textContent = `${y}년`;
+          item.dataset.value = y;
+          item.onclick = () => selectWheelValue(y);
+          wheelList.appendChild(item);
+        }
+      } else if (mode === 'month') {
+        wheelTitle.textContent = '월 선택';
+        for (let m = 1; m <= 12; m++) {
+          const item = document.createElement('div');
+          item.className = 'wheel-item';
+          if (m === currentMonth) item.classList.add('selected');
+          item.textContent = `${m}월`;
+          item.dataset.value = m;
+          item.onclick = () => selectWheelValue(m);
+          wheelList.appendChild(item);
+        }
+      }
+
+      wheelModal.classList.remove('hidden');
+    }
+
+    function closeWheel() {
+      wheelModal.classList.add('hidden');
+      wheelMode = null;
+    }
+
+    function selectWheelValue(value) {
+      if (wheelMode === 'year') {
+        currentYear = value;
+      } else if (wheelMode === 'month') {
+        currentMonth = value;
+      }
+      renderCalendar();
+      closeWheel();
     }
 
     // 초기 실행
     renderCalendar();
-
   </script>
   <script src="characterManager.js"></script>
 </body>

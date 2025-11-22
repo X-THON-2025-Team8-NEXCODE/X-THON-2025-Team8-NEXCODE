@@ -66,7 +66,7 @@ body {
   margin: 4px 0 24px;
 }
 
-/* swipe.css의 .speech-bubble과 동일 스타일 */
+/* 말풍선 박스 */
 .speech-bubble {
   max-width: 100%;
   padding: 10px 14px;
@@ -87,7 +87,7 @@ body {
   border-color: transparent transparent rgba(255, 255, 255, 0.96) transparent;
 }
 
-/* 타이핑 텍스트 (swipe의 typing-text와 같은 느낌) */
+/* 타이핑 텍스트 */
 .question-text {
   font-size: 16px;
   font-weight: 600;
@@ -117,6 +117,8 @@ body {
   transform: translate(0, 0);
   opacity: 1;
   will-change: transform, opacity;
+  position: relative;   /* ✅ 카드 레이어를 올리기 위해 추가 */
+  z-index: 5;           /* ✅ 구름/따봉보다 항상 앞에 오도록 */
 }
 
 .evaluate-card.transition {
@@ -158,34 +160,34 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 26px 26px 26px;
-  z-index: 1;
+  margin: 12px 26px 26px;   /* 살짝 위로 당김 */
+  z-index: 0;               /* ✅ 카드보다 낮게 */
 }
 
-/* 전체 흰 구름 – 화면 중간 넘게 크게 */
+/* 전체 흰 구름 – 상남자 사이즈 ↑ + 더 위로 */
 .thumb-row::before {
   content: "";
   position: absolute;
   left: 50%;
-  top: -190px;
+  top: -230px;                     /* 더 위로 올림 */
   transform: translateX(-50%);
-  width: 380px;
-  height: 320px;
+  width: 440px;                    /* 가로 크게 */
+  height: 360px;                   /* 세로도 크게 */
   border-radius: 999px;
   background: radial-gradient(
-    ellipse at 50% 80%,
+    ellipse at 50% 75%,
     rgba(255, 255, 255, 0.98) 0,
-    rgba(255, 255, 255, 0.75) 35%,
-    rgba(255, 255, 255, 0.3) 65%,
+    rgba(255, 255, 255, 0.78) 30%,
+    rgba(255, 255, 255, 0.35) 65%,
     rgba(255, 255, 255, 0) 100%
   );
-  filter: blur(26px);
+  filter: blur(30px);
   opacity: 0.96;
   z-index: -2;
   pointer-events: none;
 }
 
-/* 엄지 버튼 공통 (원 제거) */
+/* 엄지 버튼 공통 */
 .thumb {
   position: relative;
   width: 56px;
@@ -200,48 +202,48 @@ body {
   overflow: visible;
 }
 
-/* 왼쪽 초록 구름 – 크게 위로 */
+/* 왼쪽 초록 구름 – 상남자 사이즈 + 위로 + 따봉 주변 밝게 */
 .thumb-left::before {
   content: "";
   position: absolute;
   left: 50%;
-  top: -220px;
+  top: -260px;                    /* 더 위로 */
   transform: translateX(-70%);
-  width: 260px;
-  height: 360px;
+  width: 320px;                   /* 크게 */
+  height: 420px;                  /* 위아래로 길게 */
   background: radial-gradient(
-    ellipse at 50% 55%,
-    rgba(110, 231, 183, 0.9) 0,
-    rgba(110, 231, 183, 0.6) 25%,
-    rgba(110, 231, 183, 0.22) 55%,
-    rgba(110, 231, 183, 0.04) 82%,
+    ellipse at 50% 70%,           /* 밝은 부분을 따봉 근처로 내림 */
+    rgba(110, 231, 183, 0.95) 0,
+    rgba(110, 231, 183, 0.65) 25%,
+    rgba(110, 231, 183, 0.26) 55%,
+    rgba(110, 231, 183, 0.06) 82%,
     rgba(110, 231, 183, 0) 100%
   );
-  filter: blur(30px);
-  opacity: 0.96;
+  filter: blur(32px);
+  opacity: 0.98;
   z-index: -1;
   pointer-events: none;
 }
 
-/* 오른쪽 빨강 구름 – 크게 위로 */
+/* 오른쪽 빨강 구름 – 상남자 사이즈 + 위로 + 따봉 주변 밝게 */
 .thumb-right::before {
   content: "";
   position: absolute;
   left: 50%;
-  top: -220px;
+  top: -260px;                    /* 더 위로 */
   transform: translateX(-30%);
-  width: 260px;
-  height: 360px;
+  width: 320px;                   /* 크게 */
+  height: 420px;                  /* 위아래로 길게 */
   background: radial-gradient(
-    ellipse at 50% 55%,
-    rgba(252, 165, 165, 0.96) 0,
-    rgba(252, 165, 165, 0.65) 25%,
-    rgba(252, 165, 165, 0.22) 55%,
-    rgba(252, 165, 165, 0.04) 82%,
+    ellipse at 50% 70%,
+    rgba(252, 165, 165, 0.98) 0,
+    rgba(252, 165, 165, 0.68) 25%,
+    rgba(252, 165, 165, 0.26) 55%,
+    rgba(252, 165, 165, 0.06) 82%,
     rgba(252, 165, 165, 0) 100%
   );
-  filter: blur(30px);
-  opacity: 0.96;
+  filter: blur(32px);
+  opacity: 0.98;
   z-index: -1;
   pointer-events: none;
 }
