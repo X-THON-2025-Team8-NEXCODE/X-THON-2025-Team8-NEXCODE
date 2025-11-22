@@ -1,5 +1,5 @@
 from utils.db_utils import create_expenses_table, insert_expenses_data
-from utils.openai_utils import ask_ai
+from utils.openai_utils import ask_ai, classify_category
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pymysql
@@ -73,9 +73,13 @@ def debug_post_request():
 @app.route('/api/buy', methods=['POST'])
 def buy():
 	data = request.get_json()
+ 
+	if not all(k in data for k in ["user_id", "merchant", "price", "hour", "created_at"]):
+		return jsonify({"status": "fail", "message": "필수 데이터(user_id, merchant, price, hour, created_at)가 누락되었습니다."}), 400
+    
 	user_id = data.get("user_id")
 	merchant = data.get("merchant")
-	category = data.get("category")
+	category = classify_category(merchant)
 	price = data.get("price")
 	hour = data.get("hour")
 	sentiment = data.get("sentiment")
