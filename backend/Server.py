@@ -1,4 +1,4 @@
-from utils.db_utils import create_expenses_table, create_initial_table, insert_expenses_data, insert_initial_data
+from utils.db_utils import create_expenses_table, insert_expenses_data
 from utils.openai_utils import ask_ai
 from flask import Flask, jsonify, request
 from flask_cors import CORS
