@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buy-bye – 첫 가입</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #000; /* 주변 프레임 */
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif;
+    }
+
+    /* 갤럭시 S23 19.5:9 비율 프레임 */
+    .app-frame {
+      width: 100vw;
+      max-width: 1080px;
+      aspect-ratio: 9 / 19.5;
+      position: relative;
+      overflow: hidden;
+
+      background-image: url("./image/loginBackground.png");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .app-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 56px 24px 40px;
+      text-align: center;
+      z-index: 10;
+    }
+
+    .logo-text {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #32651f;
+      margin-bottom: 40px;
+    }
+
+    .tree {
+      width: 58%;
+      max-width: 350px;
+      height: auto;
+      filter: drop-shadow(0 18px 28px rgba(0,0,0,0.18));
+      margin-bottom: 48px;
+    }
+
+    .headline {
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-bottom: 40px;
+      color: #000;
+    }
+
+    .kakao-wrap {
+      margin-top: auto;
+      margin-bottom: 8vh;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .kakao-btn {
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .kakao-btn img {
+      width: 80%;
+      max-width: 350px;
+      height: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-frame">
+    <div class="app-content">
+
+      <div class="logo-text">Buy-bye</div>
+
+      <img class="tree"
+           src="./image/Lv5smile.png"
+           alt="tree" />
+
+      <div class="headline">Buy-bye가 처음이신가요?</div>
+
+      <div class="kakao-wrap">
+        <button class="kakao-btn">
+          <img src="./image/kakao.png"
+               alt="카카오 로그인" />
+        </button>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
