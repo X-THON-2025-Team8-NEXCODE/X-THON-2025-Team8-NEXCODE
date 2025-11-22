@@ -147,21 +147,17 @@ def ask_ai_coach(item_name, price, category, current_hour):
 # ==========================================
 # 5. 실행 테스트
 # ==========================================
-if __name__ == "__main__":
+def ask_ai(item, price, category, hour):
     print("\n🛒 [Pymysql 연동] AI 코치 시작 (이모티콘 제거 버전)")
 
     # 테스트 질문
-    question_item = "야식 치킨"
-    question_price = 20000
-    question_category = "식비"
-    question_hour = 12
+    question_item = item
+    question_price = price
+    question_category = category
+    question_hour = hour
     
     print(f"\nQ. {question_hour}시에 {question_category}({question_item}) 살까?")
     
     result = ask_ai_coach(question_item, question_price, question_category, question_hour)
     
-    if "error" in result:
-        print("❌ 에러 발생:", result['error'])
-    else:
-        print(f"\n🤖 AI 답변: {result['analysis']['message']}")
-        print(f"📊 판단: {result['decision']['verdict']} (위험도: {result['decision']['risk_score']})")
+    return result

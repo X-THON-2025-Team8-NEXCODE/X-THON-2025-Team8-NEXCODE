@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+from utils.openai_utils import ask_ai
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pymysql
 
@@ -35,6 +36,23 @@ def home():
         "message": "Flask 서버가 정상적으로 실행 중입니다.",
         "db_connection_status": db_status
     })
+
+@app.route('/api/ai', methods=['POST'])
+def ask():
+    data = request.get_json()
+    item = data.get("item")
+    price = data.get("price")
+    category = data.get("category")
+    hour = data.get("hour")
+
+
+    result = ask_ai(item, price, category, hour)
+    
+    if "error" in result:
+        print("❌ 에러 발생:", result['error'])
+    else:
+        print(f"\n🤖 AI 답변: {result['analysis']['message']}")
+        print(f"📊 판단: {result['decision']['verdict']} (위험도: {result['decision']['risk_score']})")
 
 
 if __name__ == '__main__':
