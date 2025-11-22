@@ -1,222 +1,178 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>가계부 캐릭터 앱</title>
-  <link rel="stylesheet" href="style.css" />
 
-  <!-- 🔹 헤더(알림/내정보/더보기) 아래로 48px 내리기 - 무조건 적용되도록 !important -->
+<head>
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <meta charset="UTF-8" />
+  <title>Buy-bye – 첫 가입</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!--  Kakao SDK 스크립트는 이제 필요 없어서 제거했습니다. -->
+
   <style>
-    .app-header {
-      margin-top: 48px !important;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #000;
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    }
+
+    .app-frame {
+      width: 100vw;
+      max-width: 1080px;
+      aspect-ratio: 9 / 19.5;
+      position: relative;
+      overflow: hidden;
+      /* 배경 이미지 경로도 아까 고친대로 유지합니다 */
+      background-image: url("./image/loginBackground.png");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .app-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 56px 24px 40px;
+      text-align: center;
+      z-index: 10;
+    }
+
+    /* .logo-text 스타일은 더 이상 쓰지 않으므로 지워도 됩니다. */
+
+    .tree {
+      /* 1. 크기 설정 (아까 키운 그대로) */
+      width: 75%;
+      max-width: 500px;
+      height: auto;
+      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.18));
+
+      /* 2. 위치 설정 (여기가 중요합니다!) */
+      position: relative;
+      /* "내 위치를 기준으로 움직이겠다"는 뜻 */
+      top: 50px;
+      /* 원래 있던 자리에서 아래로 50px만큼만 혼자 내려감 */
+
+      /* 3. 마진 초기화 */
+      /* 아까 늘렸던 margin-top을 지우거나 줄여야 전체가 안 밀립니다 */
+      margin-top: 20px;
+      margin-bottom: 48px;
+    }
+
+    .headline {
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-bottom: 40px;
+      color: #000;
+      /* 이미지와 텍스트가 한 줄에 자연스럽게 있게 하기 위한 설정 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      /* 이미지와 텍스트 사이 간격 */
+      /* ▼ 위로 올리기 위한 코드 추가 ▼ */
+      position: relative;
+      /* 위치 이동 활성화 */
+      top: -50px;
+      /* 위로 30px 올라감 (숫자를 조절하세요) */
+    }
+
+    /* 새로 추가된 문구 중간 로고 스타일 */
+    .headline-logo {
+      height: 6.0em;
+      /* 현재 폰트 크기의 1.5배 높이로 설정 */
+      width: auto;
+      /* 비율 유지 */
+      /* 필요하다면 미세 위치 조정 */
+      /* position: relative; top: 2px; */
+    }
+
+    .kakao-wrap {
+      margin-top: auto;
+      margin-bottom: 8vh;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .kakao-btn {
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .kakao-btn img {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+      position: relative;
+      /* 위치 이동 활성화 */
+      top: -30px;
+      /* 위로 30px 올라감 (숫자를 조절하세요) */
+      border-radius: 20px;
     }
   </style>
-</head>
-<body>
-  <div class="page">
-    <!-- 헤더 -->
-    <header class="app-header">
-      <button class="icon-btn" aria-label="알림">
-        <img src="image/alarm.png" alt="알림 아이콘" />
-      </button>
-      <button class="icon-btn" aria-label="마이페이지">
-        <img src="image/my.png" alt="마이페이지 아이콘" />
-      </button>
-      <button class="icon-btn" aria-label="메뉴">
-        <img src="image/more.png" alt="메뉴 아이콘" />
-      </button>
-    </header>
-
-    <!-- 오늘의 지출 -->
-    <section class="today-section">
-      <div class="today-card">
-        <div class="today-label-row">
-          <span class="today-label">재호님의 오늘의 지출</span>
-          <button class="refresh-btn" id="refresh-btn" aria-label="새로고침">
-            <img
-              src="image/f5.png"
-              alt="새로고침 아이콘"
-              class="refresh-icon"
-            />
-          </button>
-        </div>
-        <div class="today-amount-text" id="today-amount">
-          0원
-        </div>
-      </div>
-    </section>
-
-    <!-- 캐릭터 레벨 & 진행률 링 -->
-    <section class="mascot-section">
-      <div class="progress-ring">
-        <!-- SVG 진행률 원 -->
-        <svg width="260" height="260">
-          <defs>
-            <!-- 진행률 색상 그라데이션 -->
-            <linearGradient id="grad-progress" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#b7ffcd" />
-              <stop offset="45%" stop-color="#8ef7b3" />
-              <stop offset="100%" stop-color="#5de39e" />
-            </linearGradient>
-          </defs>
-
-          <!-- 배경 링 -->
-          <circle
-            class="ring-bg"
-            cx="130"
-            cy="130"
-            r="110"
-          />
-
-          <!-- 채워지는 링 -->
-          <circle
-            class="ring-progress"
-            id="progress-circle"
-            cx="130"
-            cy="130"
-            r="110"
-          />
-        </svg>
-
-        <!-- 안쪽 동그라미 (씨앗 + 레벨) -->
-        <div class="progress-inner">
-          <img src="image/seed.png" alt="저금 캐릭터" class="mascot-img" />
-          <div class="level-text" id="level-text">Lv. 1</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 가계부 / 후회도 / 소비 평가 -->
-    <section class="actions-card">
-      <div class="actions-row">
-        <button class="action-item">
-          <img src="image/calendar.png" alt="가계부 아이콘" />
-          <span class="action-label">가계부</span>
-        </button>
-
-        <button class="action-item">
-          <img src="image/sad.png" alt="후회도 아이콘" />
-          <span class="action-label">후회도</span>
-        </button>
-
-        <!-- 🔹 여기만 수정: id 추가해서 swipe.html로 이동시키기 -->
-        <button class="action-item" id="review-button">
-          <img src="image/good.png" alt="소비 평가 아이콘" />
-          <span class="action-label">소비 평가</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- 지출 내역 -->
-    <section class="history-card">
-      <div class="history-header">지출 내역</div>
-      <div class="history-list" id="history-list"></div>
-      <div class="history-more">더 보기</div>
-    </section>
-  </div>
 
   <script>
-    // --------------------- 지출 내역 더미 데이터 ---------------------
-    const expenses = [
-      {
-        icon: "M",
-        iconSrc: "image/mgc.png",      // 🔹 메가커피 이미지
-        title: "메가커피",
-        subtitle: "메가커피 · 카카오뱅크",
-        tag: "카페",
-        amount: 3900,
-      },
-      {
-        icon: "N",
-        iconSrc: "image/netflix.png",  // 🔹 넷플릭스 이미지
-        title: "넷플릭스",
-        subtitle: "넷플릭스 · 카카오페이",
-        tag: "구독",
-        amount: 11700,
-      },
-      {
-        icon: "B",
-        iconSrc: "image/bmin.png",     // 🔹 배민 이미지
-        title: "배달의 민족",
-        subtitle: "페페로니 피자 P 세트",
-        tag: "배달",
-        amount: 14000,
-      },
-    ];
+    //  [핵심 수정 사항]
+    // 복잡한 fetch나 SDK 초기화 없이, 백엔드 주소로 바로 이동합니다.
+    // 이 주소는 사용자님의 Flask 서버 주소입니다.
+    const BACKEND_AUTH_URL = "https://x-thon.nexcode.kr:16010/kakao/authorize";
 
-    const historyListEl = document.getElementById("history-list");
-    const todayAmountEl = document.getElementById("today-amount");
-
-    const formatCurrency = (n) =>
-      n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
-
-    // 렌더링 + 합계 계산
-    let total = 0;
-    expenses.forEach((item) => {
-      total += item.amount;
-
-      const row = document.createElement("div");
-      row.className = "history-item";
-
-      row.innerHTML = `
-        <div class="history-left">
-          <div class="history-icon">
-            <img src="${item.iconSrc}" alt="${item.title} 아이콘" />
-          </div>
-          <div class="history-text">
-            <div class="history-title-row">
-              <span class="history-merchant">${item.title}</span>
-              <span class="history-tag">${item.tag}</span>
-            </div>
-            <div class="history-sub">${item.subtitle}</div>
-          </div>
-        </div>
-        <div class="history-right">
-          <span class="history-amount">-${formatCurrency(item.amount)}</span>
-        </div>
-      `;
-
-      historyListEl.appendChild(row);
-    });
-
-    // 오늘의 지출 = 합계
-    todayAmountEl.textContent = formatCurrency(total);
-
-    // --------------------- 진행률 게이지 (원형 링) ---------------------
-    const circle = document.getElementById("progress-circle");
-    const radius = circle.r.baseVal.value;
-    const circumference = 2 * Math.PI * radius;
-
-    circle.style.strokeDasharray = `${circumference}`;
-    circle.style.strokeDashoffset = `${circumference}`;
-
-    // 예시: 오늘 예산 50,000원 기준으로 진행률 계산
-    const DAILY_BUDGET = 50000;
-    const progress = Math.max(
-      0,
-      Math.min(100, Math.round((total / DAILY_BUDGET) * 100))
-    );
-
-    function setProgress(percent) {
-      const offset = circumference - (percent / 100) * circumference;
-      circle.style.strokeDashoffset = offset;
+    function kakaoLogin() {
+      // 버튼을 누르면 백엔드 서버가 카카오 로그인 페이지로 보내줍니다.
+      window.location.href = BACKEND_AUTH_URL;
     }
 
-    // 살짝 딜레이 두고 애니메이션
-    setTimeout(() => setProgress(progress), 300);
+    window.onload = function () {
+      // URL에 있는 파라미터를 확인해서 로그인 성공/실패 메시지를 띄웁니다.
+      const urlParams = new URLSearchParams(window.location.search);
 
-    // --------------------- 새로고침 버튼 ---------------------
-    document
-      .getElementById("refresh-btn")
-      .addEventListener("click", () => location.reload());
+      if (urlParams.get('login') === 'success') {
+        console.log("로그인 성공!");
+        // 필요하다면 여기서 메인 페이지로 이동하는 로직 등을 추가할 수 있습니다.
+      } else if (urlParams.get('login') === 'fail') {
+        alert("로그인에 실패했습니다.");
+      }
 
-    // 🔹 소비 평가 버튼 → swipe.html 이동
-    document
-      .getElementById("review-button")
-      .addEventListener("click", () => {
-        window.location.href = "swipe.html";
-      });
+      // 버튼에 클릭 이벤트 연결
+      document.querySelector('.kakao-btn').onclick = kakaoLogin;
+    };
   </script>
+
+</head>
+
+<body>
+  <div class="app-frame">
+    <div class="app-content">
+
+      <img class="tree" src="./image/Lv5smile.png" alt="tree" />
+
+      <div class="headline">
+        <img src="./image/Buy-Bye.png" alt="Buy-bye Logo" class="headline-logo">
+        <span>가 처음이신가요?</span>
+      </div>
+
+      <div class="kakao-wrap">
+        <button class="kakao-btn">
+          <img src="./image/kakao.jpg" alt="카카오 로그인" />
+        </button>
+      </div>
+
+    </div>
+  </div>
 </body>
+
 </html>

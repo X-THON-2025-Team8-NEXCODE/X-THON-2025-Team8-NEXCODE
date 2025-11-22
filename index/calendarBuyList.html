@@ -5,7 +5,9 @@
   <title>Buy-bye 소비 상세</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <!-- 폰트 -->
+  <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
   <style>
     /* === 1. 기본 설정 === */
@@ -61,11 +63,11 @@
       font-weight: 600;
     }
 
-    /* === 3. 캐릭터 및 타이틀 === */
+    /* === 3. 캐릭터 === */
     .character-section {
       text-align: center;
       margin-top: -10px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
     .char-img {
       width: 120px;
@@ -73,11 +75,43 @@
       object-fit: cover;
       filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
     }
-    .page-title {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: #000;
-      margin-top: 15px;
+
+    /* === 말풍선 === */
+    .speech {
+      display: flex;
+      justify-content: center;
+      padding: 0 10px;
+      margin-bottom: 16px;
+    }
+
+    .speech-bubble {
+      position: relative;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 10px 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .speech-bubble::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 10px 10px 10px;
+      border-style: solid;
+      border-color: transparent transparent #ffffff transparent;
+      filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.05));
+    }
+
+    .typing-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #333;
+      line-height: 1.5;
+      min-height: 1.2em;
+      white-space: pre-line;
     }
 
     /* === 4. 메인 카드 === */
@@ -208,10 +242,16 @@
       </button>
     </div>
 
-    <!-- 캐릭터 + 타이틀 -->
+    <!-- 캐릭터 -->
     <div class="character-section">
       <img src="./image/seed.png" class="char-img" alt="캐릭터">
-      <div class="page-title">" 11월 1일의 소비 내역입니다. "</div>
+    </div>
+
+    <!-- 말풍선 -->
+    <div class="speech">
+      <div class="speech-bubble">
+        <p id="typing-text" class="typing-text"></p>
+      </div>
     </div>
 
     <!-- 상세 카드 -->
@@ -223,7 +263,7 @@
       </div>
 
       <div class="edit-area">
-        <img src="https://cdn-icons-png.flaticon.com/512/2985/2985150.png" class="arrow-icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/2985/2985150.png" class="arrow-icon" alt="arrow">
         
         <button class="edit-btn" onclick="goToEvaluationPage()">
           <img src="./image/good.png" alt="edit">
@@ -235,35 +275,50 @@
   </div>
 
   <script>
-    // URL에서 날짜 파라미터 읽기
+    // 1. URL에서 날짜 파라미터 읽기
     const urlParams   = new URLSearchParams(window.location.search);
     const yearParam   = urlParams.get('year');
     const monthParam  = urlParams.get('month');
     const dayParam    = urlParams.get('day');
 
-    // 날짜가 넘어온 경우 텍스트 교체
+    // 말풍선 문구 기본값
+    let messageText = "오늘의 소비 내역입니다.";
+
     if (yearParam && monthParam && dayParam) {
-      document.querySelector('.page-title').innerText =
-        `" ${monthParam}월 ${dayParam}일의 소비 내역입니다. "`;
-      document.querySelector('.card-date').innerText =
-        `${yearParam}년 ${monthParam}월 ${dayParam}일`;
+      messageText = `${monthParam}월 ${dayParam}일의 소비 내역입니다.`;
+
+      const cardDateEl = document.querySelector('.card-date');
+      if (cardDateEl) {
+        cardDateEl.innerText = `${yearParam}년 ${monthParam}월 ${dayParam}일`;
+      }
     }
 
-    // === 하루 소비 내역 더미 데이터 ===
-    // id는 choose.html의 expenses 배열 index로 사용 가능하도록 0부터 시작해도 되고,
-    // 지금처럼 단순 식별자로만 써도 됨 (현재 choose에서는 값만 보고 index로 사용).
+    // 2. 말풍선 타이핑 효과
+    const typingTarget = document.getElementById("typing-text");
+    let typingIndex = 0;
+
+    function typeStep() {
+      if (typingIndex <= messageText.length) {
+        typingTarget.textContent = messageText.slice(0, typingIndex);
+        typingIndex++;
+        setTimeout(typeStep, 60);
+      }
+    }
+
+    typeStep();
+
+    // 3. 하루 소비 내역 더미 데이터
     let expenses = [
-      { id: 1, brand: 'Mega',    logo: 'https://cdn-icons-png.flaticon.com/512/7520/7520466.png', price: '-3,900원',  desc: '메가커피 | 카카오뱅크',    status: 'none' },
-      { id: 2, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이',    status: 'bad'  },
-      { id: 3, brand: 'Baemin',  logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png',   price: '-14,000원', desc: '배달의 민족 | 페페로니피자', status: 'none' },
-      { id: 4, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이',    status: 'bad'  },
-      { id: 5, brand: 'Baemin',  logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png',   price: '-14,000원', desc: '배달의 민족 | 치킨',        status: 'good' }
+      { id: 1, brand: 'Mega',    logo: 'https://cdn-icons-png.flaticon.com/512/7520/7520466.png', price: '-3,900원',  desc: '메가커피 | 카카오뱅크',      status: 'none' },
+      { id: 2, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이',      status: 'bad'  },
+      { id: 3, brand: 'Baemin',  logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png',   price: '-14,000원', desc: '배달의 민족 | 페페로니 피자', status: 'none' },
+      { id: 4, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이',      status: 'bad'  },
+      { id: 5, brand: 'Baemin',  logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png',   price: '-14,000원', desc: '배달의 민족 | 치킨',          status: 'good' }
     ];
 
     let selectedIds = [];
     const listContainer = document.getElementById('expenseList');
 
-    // === 리스트 렌더링 ===
     function renderList() {
       listContainer.innerHTML = '';
 
@@ -281,13 +336,13 @@
 
         div.innerHTML = `
           <div class="item-left">
-            <img src="${item.logo}" class="brand-logo">
+            <img src="${item.logo}" class="brand-logo" alt="logo">
             <div class="item-info">
               <div class="item-price">${item.price}</div>
               <div class="item-desc">${item.desc}</div>
             </div>
           </div>
-          <img src="${iconSrc}" class="status-icon">
+          <img src="${iconSrc}" class="status-icon" alt="status">
         `;
 
         div.onclick = () => toggleSelect(item.id);
@@ -295,7 +350,6 @@
       });
     }
 
-    // === 선택 토글 ===
     function toggleSelect(id) {
       if (selectedIds.includes(id)) {
         selectedIds = selectedIds.filter(sid => sid !== id);
@@ -305,7 +359,6 @@
       renderList();
     }
 
-    // === 선택 항목 평가 페이지로 이동 ===
     function goToEvaluationPage() {
       if (selectedIds.length === 0) {
         alert("평가를 수정할 내역을 하나 이상 선택해주세요!");
@@ -313,9 +366,6 @@
       }
 
       const idsParam = selectedIds.join(',');
-
-      // choose.html에서 ids 파라미터를 읽어서
-      // 해당 인덱스(또는 id에 해당하는 index)만 평가하게 됨
       location.href = `choose.html?ids=${idsParam}`;
     }
 
