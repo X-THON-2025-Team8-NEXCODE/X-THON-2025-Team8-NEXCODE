@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>가계부 캐릭터 앱</title>
-  <!-- 외부 CSS 파일 연결 -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -28,7 +27,11 @@
         <div class="today-label-row">
           <span class="today-label">오늘의 지출</span>
           <button class="refresh-btn" id="refresh-btn" aria-label="새로고침">
-            <img src="image/f5.png" alt="새로고침 아이콘" class="refresh-icon" />
+            <img
+              src="image/f5.png"
+              alt="새로고침 아이콘"
+              class="refresh-icon"
+            />
           </button>
         </div>
         <div class="today-amount-text" id="today-amount">
@@ -37,12 +40,42 @@
       </div>
     </section>
 
-    <!-- 캐릭터 레벨 & 프로그레스 링 -->
+    <!-- 캐릭터 레벨 & 진행률 링 -->
     <section class="mascot-section">
       <div class="progress-ring">
+        <!-- SVG 진행률 원 -->
+        <svg width="260" height="260">
+          <defs>
+            <!-- 진행률 색상 그라데이션 -->
+            <linearGradient id="grad-progress" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#b7ffcd" />
+              <stop offset="45%" stop-color="#8ef7b3" />
+              <stop offset="100%" stop-color="#5de39e" />
+            </linearGradient>
+          </defs>
+
+          <!-- 배경 링 -->
+          <circle
+            class="ring-bg"
+            cx="130"
+            cy="130"
+            r="110"
+          />
+
+          <!-- 채워지는 링 -->
+          <circle
+            class="ring-progress"
+            id="progress-circle"
+            cx="130"
+            cy="130"
+            r="110"
+          />
+        </svg>
+
+        <!-- 안쪽 동그라미 (씨앗 + 레벨) -->
         <div class="progress-inner">
           <img src="image/seed.png" alt="저금 캐릭터" class="mascot-img" />
-          <div class="level-text">Lv. 1</div>
+          <div class="level-text" id="level-text">Lv. 1</div>
         </div>
       </div>
     </section>
@@ -76,29 +109,29 @@
   </div>
 
   <script>
-    // 지출 내역 더미 데이터 (태그 추가)
+    // --------------------- 지출 내역 더미 데이터 ---------------------
     const expenses = [
       {
         icon: "M",
         title: "메가커피",
         subtitle: "메가커피 · 카카오뱅크",
         tag: "카페",
-        amount: 3900
+        amount: 3900,
       },
       {
         icon: "N",
         title: "넷플릭스",
         subtitle: "넷플릭스 · 카카오페이",
         tag: "구독",
-        amount: 11700
+        amount: 11700,
       },
       {
         icon: "B",
         title: "배달의 민족",
         subtitle: "페페로니 피자 P 세트",
         tag: "배달",
-        amount: 14000
-      }
+        amount: 14000,
+      },
     ];
 
     const historyListEl = document.getElementById("history-list");
@@ -137,8 +170,32 @@
     // 오늘의 지출 = 합계
     todayAmountEl.textContent = formatCurrency(total);
 
-    // 새로고침 버튼
-    document.getElementById("refresh-btn")
+    // --------------------- 진행률 게이지 (원형 링) ---------------------
+    const circle = document.getElementById("progress-circle");
+    const radius = circle.r.baseVal.value;
+    const circumference = 2 * Math.PI * radius;
+
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+
+    // 예시: 오늘 예산 50,000원 기준으로 진행률 계산
+    const DAILY_BUDGET = 50000;
+    const progress = Math.max(
+      0,
+      Math.min(100, Math.round((total / DAILY_BUDGET) * 100))
+    );
+
+    function setProgress(percent) {
+      const offset = circumference - (percent / 100) * circumference;
+      circle.style.strokeDashoffset = offset;
+    }
+
+    // 살짝 딜레이 두고 애니메이션
+    setTimeout(() => setProgress(progress), 300);
+
+    // --------------------- 새로고침 버튼 ---------------------
+    document
+      .getElementById("refresh-btn")
       .addEventListener("click", () => location.reload());
   </script>
 </body>
