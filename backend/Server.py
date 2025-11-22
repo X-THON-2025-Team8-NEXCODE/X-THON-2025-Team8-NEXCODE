@@ -17,7 +17,9 @@ if sys.stderr.encoding != 'utf-8':
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-CORS(app)
+app.permanent_session_lifetime = timedelta(hours=1)
+
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": ["https://x-thon.nexcode.kr"]}})
 
 def get_db_connection():
 	try:
@@ -38,9 +40,27 @@ client_id = "7cf0e1ebb6ff3e9c3cffcac43ae44e78"
 client_secret = "4pGmDju9d4OKGXi2dXVs399ZDdIoU6mV"
 
 domain = "https://x-thon.nexcode.kr:16010"
+
 redirect_uri = domain + "/kakao/redirect"
 kauth_host = "https://kauth.kakao.com"
 kapi_host = "https://kapi.kakao.com"
+
+
+@app.route("/")
+def home():
+    if session.get('user_id'):
+        print(f"[Session] User {session.get('user_id')} accessed home. Serving index.html")
+        return render_template('index.html')
+    else:
+        print("[Session] No user logged in. Serving login.html")
+        return render_template('login.html')
+
+@app.route("/api/status")
+def check_status():
+    if session.get('user_id'):
+        return jsonify({"logged_in": True, "user_id": session.get('user_id')})
+    else:
+        return jsonify({"logged_in": False})
 
 @app.route('/debug', methods=['POST'])
 def debug_post_request():
@@ -111,37 +131,33 @@ def redirect_page():
     }
     
     try:
-        # A. 토큰 발급 요청
         resp = requests.post(kauth_host + "/oauth/token", data=data)
         
         if resp.status_code == 200:
             access_token = resp.json().get('access_token')
-            session['access_token'] = access_token # 세션에 토큰 저장
-
-            # B. [추가됨] 사용자 정보 요청 (v2/user/me)
+            session['access_token'] = access_token
+            
             headers = {'Authorization': f'Bearer {access_token}'}
             user_resp = requests.get(kapi_host + "/v2/user/me", headers=headers)
 
             if user_resp.status_code == 200:
                 user_info = user_resp.json()
                 
-                # 데이터 추출
                 kakao_id = user_info.get('id')
                 kakao_account = user_info.get('kakao_account', {})
                 profile = kakao_account.get('profile', {})
-                
                 nickname = profile.get('nickname', 'Unknown')
                 image = profile.get('profile_image_url', '')
 
                 print(f"[Kakao] User Info: ID={kakao_id}, Nick={nickname}")
 
-                # C. [추가됨] DB에 저장 또는 업데이트
                 save_update_kakao_user(kakao_id, nickname, image)
                 
-                # D. [추가됨] 세션에 user_id 저장 (중요: 이후 사용자를 식별하기 위해)
+                create_expenses_table(kakao_id)
+                
                 session['user_id'] = str(kakao_id)
-
-                # E. 로그인 성공 시 메인 도메인으로 이동
+                session.permanent = True
+                
                 return redirect("https://x-thon.nexcode.kr")
             else:
                 print(f"[Kakao] User Info Failed: {user_resp.text}")
@@ -206,9 +222,6 @@ def buy():
 @app.route('/api/expenses', methods=['POST'])
 def expenses():
 	data = request.get_json()
- 
-	if not all(k in data for k in ["user_id", "item_name", "price", "created_at"]):
-		return jsonify({"status": "fail", "message": "필수 데이터(user_id, item_name, price, created_at)가 누락되었습니다."}), 400
 	
 	user_id = data.get("user_id")
 	date = data.get("date")
@@ -217,12 +230,12 @@ def expenses():
 		result = get_expenses(user_id, date)
 		
 		if result != None:
-			jsonify({"status":"success","message":"해당 날짜의 지출 내역을 성공적으로 불러왔습니다.", "data": result})
+			return jsonify({"status":"success","message":"해당 날짜의 지출 내역을 성공적으로 불러왔습니다.", "data": result})
 		else:
 			return jsonify({"status":"fail","message":"해당 날짜의 지출 내역이 없습니다."})
 	except Exception as e:
 		print(e)
-		return jsonify({"status":"fail","message":f"초기 지출 내역 기록 중 에러 발생: {str(e)}"})
+		return jsonify({"status":"fail","message":f"해당 날짜의 지출 내역 중 에러 발생: {str(e)}"})
 
 @app.route('/api/ai', methods=['POST'])
 def ask():

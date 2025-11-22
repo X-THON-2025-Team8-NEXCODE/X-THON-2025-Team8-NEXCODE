@@ -37,6 +37,9 @@
     <button class="evaluate-btn" id="evaluate-btn" type="button" disabled>
       선택한 소비 평가하러 가기
     </button>
+
+    <!-- ⭐ 하단 네비게이션바 때문에 눌리기 어렵지 않도록 여백 추가 -->
+    <div style="height: 90px;"></div>
   </div>
 
   <script>
@@ -99,7 +102,7 @@
     const formatAmount = (n) =>
       "-" + n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
 
-    // ✅ 선택된 index들을 저장 (여러 개 선택 가능)
+    // 선택된 index들 저장
     const selectedIndices = new Set();
 
     // 리스트 렌더링
@@ -121,7 +124,6 @@
         </div>
       `;
 
-      // 클릭 시 선택/해제 토글 (바로 화면 이동 X)
       card.addEventListener("click", () => toggleSelect(card, index));
 
       listEl.appendChild(card);
@@ -129,11 +131,9 @@
 
     function toggleSelect(card, index) {
       if (selectedIndices.has(index)) {
-        // 이미 선택되어 있으면 해제
         selectedIndices.delete(index);
         card.classList.remove("selected");
       } else {
-        // 새로 선택
         selectedIndices.add(index);
         card.classList.add("selected");
       }
@@ -151,7 +151,6 @@
       }
     }
 
-    // 여러 개 선택 후에만 평가 화면으로 이동 → choose.html로 이동
     evaluateBtn.addEventListener("click", () => {
       if (selectedIndices.size === 0) return;
 
@@ -159,11 +158,10 @@
       const first = indicesArray[0];
       const listParam = indicesArray.join(",");
 
-      // choose.html 로 정보 전달 (item: 첫번째, list: 전체)
       window.location.href = `choose.html?item=${first}&list=${listParam}`;
     });
 
-    // ---------- 타이핑 효과 ----------
+    // 타이핑 효과
     const typingTarget = document.getElementById("typing-text");
     const typingMessage = "소비 평가할 내역을 선택해주세요.";
     let typingIndex = 0;
@@ -172,7 +170,7 @@
       if (typingIndex <= typingMessage.length) {
         typingTarget.textContent = typingMessage.slice(0, typingIndex);
         typingIndex++;
-        setTimeout(typeStep, 60); // 속도 조절
+        setTimeout(typeStep, 60);
       }
     }
 
