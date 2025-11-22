@@ -7,7 +7,8 @@ from flask_cors import CORS
 import pymysql
 import json
 import sys
-from datetime import timedelta
+from datetime import timedelta, datetime
+
 
 if sys.stdout.encoding != 'utf-8':
 	sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', buffering=1)
@@ -268,11 +269,11 @@ def save_expenses_api():
         data = request.json
         ids = data.get('ids', [])
         user_id = data.get('user_id')
-        print(f"🔥 [1차 저장] 선택된 ID: {ids}")
+        print(f"[1차 저장] 선택된 ID: {ids}")
         
         conn = pymysql.connect(
-			host="secuho.life",
-			port=53306,
+			host="127.0.0.1",
+			port=3306,
 			user="nexcodecs",
 			password="sprtmzhemWkd1234!!",
 			db="users",
@@ -301,12 +302,12 @@ def save_expenses_api():
         conn.close()
         return jsonify({"status": "success", "count": saved_count})
     except Exception as e:
-        print(f"❌ 1차 저장 에러: {e}")
+        print(f"1차 저장 에러: {e}")
         return jsonify({"status": "error", "message": str(e)})
 
 
 # =================================================================
-# ✅ [2단계] 평가 결과 저장 (있으면 수정, 없으면 추가)
+# [2단계] 평가 결과 저장 (있으면 수정, 없으면 추가)
 # =================================================================
 @app.route('/save_evaluation', methods=['POST', 'OPTIONS'])
 def save_evaluation_api():
@@ -314,11 +315,11 @@ def save_evaluation_api():
         data = request.json
         results = data.get('results', []) # [{expenseIndex:0, decision:'satisfied'}, ...]
         user_id = data.get('user_id')
-        print(f"📝 [평가 저장] 결과: {results}")
+        print(f"[평가 저장] 결과: {results}")
 
         conn = pymysql.connect(
-			host="secuho.life",
-			port=53306,
+			host="127.0.0.1",
+			port=3306,
 			user="nexcodecs",
 			password="sprtmzhemWkd1234!!",
 			db="users",
@@ -350,7 +351,7 @@ def save_evaluation_api():
 
                     # 2. [UPDATE 시도] : 이미 같은 내역이 있다면 sentiment랑 regret_flag만 수정
                     update_sql = f"""
-                        UPDATE {user_id}_
+                        UPDATE {user_id}_expenses
                         SET sentiment = %s, regret_flag = %s
                         WHERE merchant = %s AND price = %s AND created_at = %s
                     """
@@ -364,7 +365,7 @@ def save_evaluation_api():
 
                     # 3. [INSERT 수행] : UPDATE된 줄이 없다면(데이터가 없다면) 새로 추가
                     if rows_affected == 0:
-                        print(f"   ➕ 데이터 없음 -> 신규 추가: {item['title']}")
+                        print(f"데이터 없음 -> 신규 추가: {item['title']}")
                         insert_sql = f"""
                             INSERT INTO {user_id}_expenses 
                             (merchant, category, price, hour, sentiment, regret_flag, created_at)
@@ -380,16 +381,15 @@ def save_evaluation_api():
                             item['created_at']
                         ))
                     else:
-                        print(f"   🔄 기존 데이터 업데이트: {item['title']}")
+                        print(f"기존 데이터 업데이트: {item['title']}")
 
             conn.commit()
         conn.close()
         return jsonify({"status": "success"})
 
     except Exception as e:
-        print(f"❌ 평가 저장 실패: {e}")
+        print(f"평가 저장 실패: {e}")
         return jsonify({"status": "error", "message": str(e)})
-
 
 if __name__ == '__main__':
 	app.run(host="0.0.0.0", port=16010, debug=False, ssl_context=('./cert_nexcode.kr/nexcode.kr.cer', './cert_nexcode.kr/nexcode.kr.key'))
