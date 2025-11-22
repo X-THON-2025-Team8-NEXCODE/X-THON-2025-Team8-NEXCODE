@@ -5,7 +5,7 @@ from openai import OpenAI
 # ==========================================
 # 1. 설정
 # ==========================================
-API_KEY = "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"
+API_KEY = "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"
 client = OpenAI(api_key=API_KEY)
 
 # ==========================================

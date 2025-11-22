@@ -49,10 +49,9 @@ def ask():
     result = ask_ai(item, price, category, hour)
     
     if "error" in result:
-        print("❌ 에러 발생:", result['error'])
+        return jsonify({"status":"fail","message":f"에러 발생: {result['error']}"})
     else:
-        print(f"\n🤖 AI 답변: {result['analysis']['message']}")
-        print(f"📊 판단: {result['decision']['verdict']} (위험도: {result['decision']['risk_score']})")
+        return jsonify({"status":"success","ask":f"답변: {result['analysis']['message']}", "decision": f"판단: {result['decision']['verdict']} (위험도: {result['decision']['risk_score']})"})
 
 
 if __name__ == '__main__':
