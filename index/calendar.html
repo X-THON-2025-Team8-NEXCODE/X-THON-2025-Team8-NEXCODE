@@ -60,8 +60,8 @@
     .character-area {
       display: flex;
       justify-content: center;
-      margin-top: -20px; 
-      margin-bottom: 20px;
+      margin-top: -40px; 
+      margin-bottom: 10px;
     }
     .character-img {
       width: 140px; 
@@ -70,15 +70,48 @@
       filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
     }
 
-    .info-text {
-      text-align: center;
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: #000;
-      margin-bottom: 24px;
-      word-break: keep-all; 
+    /* 숨김 (문구 중복 방지용) */
+    .info-text { display: none; }
+
+    /* === 말풍선 (씨앗 아래) === */
+    .speech {
+      display: flex;
+      justify-content: center;
+      padding: 0 10px;
+      margin-bottom: 16px;
     }
 
+    .speech-bubble {
+      position: relative;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 10px 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .speech-bubble::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 10px 10px 10px;
+      border-style: solid;
+      border-color: transparent transparent #ffffff transparent;
+      filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.05));
+    }
+
+    .typing-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #333;
+      line-height: 1.5;
+      min-height: 1.2em;
+      white-space: pre-line;
+    }
+
+    /* === 캘린더 카드 === */
     .calendar-card {
       background: #ffffff;
       border-radius: 30px;
@@ -141,7 +174,7 @@
     }
 
     .year-select {
-      display: none; /* 로직용, UI에서는 숨김 */
+      display: none;
     }
 
     .month-text {
@@ -152,7 +185,7 @@
       cursor: pointer;
     }
 
-    /* 요일 (일 월 화 ...) */
+    /* 요일 라벨 */
     .days-row {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -202,10 +235,7 @@
     .date-cell.sat { color: #3c6382; }
 
     /* ---------- 휠 모달 ---------- */
-
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     .wheel-modal {
       position: fixed;
@@ -304,7 +334,8 @@
 
   <div class="app-frame">
     
-    <div class="top-bar" onclick="goHome()">
+    <!-- 홈으로 -->
+    <div class="top-bar" onclick="location.href='index.html'">
       <div class="home-icon"></div> 
       <div class="home-text">홈 화면</div>
     </div>
@@ -315,6 +346,14 @@
            class="character-img" />
     </div>
 
+    <!-- 말풍선 -->
+    <div class="speech">
+      <div class="speech-bubble">
+        <p id="typing-text" class="typing-text"></p>
+      </div>
+    </div>
+
+    <!-- (숨김) 원래 텍스트 -->
     <div class="info-text">
       가계부를 자세히 보고 싶은<br>날짜를 클릭하세요!
     </div>
@@ -328,7 +367,6 @@
           <div class="year-select-wrap">
             <span id="yearDisplay" class="year-display" onclick="openWheel('year')">2025년</span>
 
-            <!-- 내부 로직용 select (숨김) -->
             <select id="yearSelect" class="year-select" onchange="changeYear()">
               <!-- 2024 ~ 2050 -->
               <option value="2024">2024년</option>
@@ -399,14 +437,12 @@
   <script>
     // === 설정 ===
     let today = new Date();
-    let currentYear = today.getFullYear();         // 오늘 연도 기준
-    let currentMonth = today.getMonth() + 1;       // 오늘 월 기준 (1~12)
+    let currentYear = today.getFullYear();         // 오늘 연도
+    let currentMonth = today.getMonth() + 1;       // 오늘 월 (1~12)
 
-    // 범위 밖이면 2024~2050 안으로 보정
     if (currentYear < 2024) currentYear = 2024;
     if (currentYear > 2050) currentYear = 2050;
 
-    // HTML 요소 가져오기
     const yearSelect      = document.getElementById('yearSelect');
     const yearDisplay     = document.getElementById('yearDisplay');
     const monthEl         = document.getElementById('currentMonth');
@@ -414,24 +450,16 @@
     const nextBtn         = document.getElementById('nextMonthBtn');
     const datesContainer  = document.getElementById('datesContainer');
 
-    // 휠 관련 요소
     const wheelModal = document.getElementById('wheelModal');
     const wheelTitle = document.getElementById('wheelTitle');
     const wheelList  = document.getElementById('wheelList');
-    let wheelMode    = null; // 'year' | 'month' | null
+    let wheelMode    = null; // 'year' | 'month'
 
-    // 1. 달력 그리기 함수
     function renderCalendar() {
-      // 드롭다운 및 표시 텍스트 동기화
-      if (yearSelect) {
-        yearSelect.value = String(currentYear);
-      }
-      if (yearDisplay) {
-        yearDisplay.textContent = `${currentYear}년`;
-      }
+      if (yearSelect) yearSelect.value = String(currentYear);
+      if (yearDisplay) yearDisplay.textContent = `${currentYear}년`;
       monthEl.innerText = `${currentMonth}월`;
 
-      // 양옆 월 표시 계산
       let prevM = currentMonth - 1;
       let nextM = currentMonth + 1;
       if (prevM < 1) prevM = 12;
@@ -440,23 +468,19 @@
       prevBtn.innerText = `${prevM}월`;
       nextBtn.innerText = `${nextM}월`;
 
-      // 날짜 비우기
       datesContainer.innerHTML = '';
 
-      // 달력 로직
-      const firstDay = new Date(currentYear, currentMonth - 1, 1);
-      const lastDay  = new Date(currentYear, currentMonth, 0);
+      const firstDay  = new Date(currentYear, currentMonth - 1, 1);
+      const lastDay   = new Date(currentYear, currentMonth, 0);
       const startDayOfWeek = firstDay.getDay();
       const totalDays      = lastDay.getDate();
 
-      // 빈 칸 채우기
       for (let i = 0; i < startDayOfWeek; i++) {
         const emptyDiv = document.createElement('div');
         emptyDiv.classList.add('date-cell', 'empty');
         datesContainer.appendChild(emptyDiv);
       }
 
-      // 날짜 채우기
       for (let d = 1; d <= totalDays; d++) {
         const dateDiv = document.createElement('div');
         dateDiv.classList.add('date-cell');
@@ -482,36 +506,35 @@
       }
     }
 
-    // 2. 월 이동 함수
     function changeMonth(step) {
       currentMonth += step;
 
       if (currentMonth > 12) {
         currentMonth = 1;
         currentYear++;
-        if (currentYear > 2050) currentYear = 2050;
       } else if (currentMonth < 1) {
         currentMonth = 12;
         currentYear--;
-        if (currentYear < 2024) currentYear = 2024;
       }
+
+      if (currentYear < 2024) {
+        currentYear = 2024;
+        currentMonth = 1;
+      }
+      if (currentYear > 2050) {
+        currentYear = 2050;
+        currentMonth = 12;
+      }
+
       renderCalendar();
     }
 
-    // 3. 연도 select 변경 시
     function changeYear() {
       currentYear = parseInt(yearSelect.value, 10);
       if (currentYear < 2024) currentYear = 2024;
       if (currentYear > 2050) currentYear = 2050;
       renderCalendar();
     }
-
-    // 홈 버튼 이동
-    function goHome() {
-      location.href = 'index.html'; 
-    }
-
-    // ===== 휠 관련 함수 =====
 
     function openWheel(mode) {
       wheelMode = mode;
@@ -524,7 +547,6 @@
           item.className = 'wheel-item';
           if (y === currentYear) item.classList.add('selected');
           item.textContent = `${y}년`;
-          item.dataset.value = y;
           item.onclick = () => selectWheelValue(y);
           wheelList.appendChild(item);
         }
@@ -535,7 +557,6 @@
           item.className = 'wheel-item';
           if (m === currentMonth) item.classList.add('selected');
           item.textContent = `${m}월`;
-          item.dataset.value = m;
           item.onclick = () => selectWheelValue(m);
           wheelList.appendChild(item);
         }
@@ -559,8 +580,21 @@
       closeWheel();
     }
 
-    // 초기 실행
+    // 말풍선 타이핑
+    const typingTarget = document.getElementById("typing-text");
+    const typingMessage = "가계부를 자세히 보고 싶은 날짜를 클릭하세요!";
+    let typingIndex = 0;
+
+    function typeStep() {
+      if (typingIndex <= typingMessage.length) {
+        typingTarget.textContent = typingMessage.slice(0, typingIndex);
+        typingIndex++;
+        setTimeout(typeStep, 60);
+      }
+    }
+
     renderCalendar();
+    typeStep();
   </script>
   <script src="characterManager.js"></script>
 </body>
