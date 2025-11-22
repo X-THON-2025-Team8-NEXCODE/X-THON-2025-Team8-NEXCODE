@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>소비 평가 - 스와이프</title>
+  <link rel="stylesheet" href="firstchoose.css" />
+</head>
+<body>
+  <div class="page">
+    <!-- 캐릭터: Lv4smile -->
+    <img src="image/Lv4smile.png" alt="캐릭터" class="mascot" />
+
+    <!-- 씨앗 말풍선 안에 질문 텍스트 (타이핑 효과) -->
+    <div class="question-wrap">
+      <div class="speech-bubble">
+        <span id="question-text" class="question-text"></span>
+      </div>
+    </div>
+
+    <!-- 평가 카드 영역 -->
+    <div class="evaluate-area">
+      <div class="evaluate-card" id="evaluate-card">
+        <div class="evaluate-icon-wrap">
+          <img id="expense-icon" src="" alt="아이콘" />
+        </div>
+        <div class="evaluate-title" id="expense-title"></div>
+        <div class="evaluate-amount" id="expense-amount"></div>
+      </div>
+    </div>
+
+    <!-- 아래 엄지 아이콘 (왼쪽: 만족, 오른쪽: 후회) -->
+    <div class="thumb-row">
+      <div class="thumb thumb-left">
+        <img src="image/tup.png" alt="만족한 소비" />
+      </div>
+      <div class="thumb thumb-right">
+        <img src="image/tdown.png" alt="후회하는 소비" />
+      </div>
+    </div>
+
+    <!-- 페이지 인디케이터 -->
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <!-- 튜토리얼 오버레이 -->
+  <div class="tutorial-overlay" id="tutorial-overlay">
+    <div class="tutorial-card">
+      <h3 class="tutorial-title">소비 평가 방법</h3>
+      <p class="tutorial-line">
+        <span class="tutorial-key">왼쪽으로 스와이프</span> · 만족한 소비
+      </p>
+      <p class="tutorial-line">
+        <span class="tutorial-key">오른쪽으로 스와이프</span> · 후회되는 소비
+      </p>
+      <p class="tutorial-line">
+        <span class="tutorial-key">아래로 스와이프</span> · 나중에 판단할게요
+      </p>
+      <button id="tutorial-start-btn" class="tutorial-btn">알겠어요</button>
+    </div>
+  </div>
+
+  <script>
+    // ---------- 더미 소비 데이터 ----------
+    const expenses = [
+      { id: 0, title: "메가커피", amount: 3900, detail: "메가커피 | 카카오뱅크", icon: "image/mgc.png" },
+      { id: 1, title: "메가커피", amount: 4500, detail: "저녁 아메리카노 | 카카오뱅크", icon: "image/mgc.png" },
+      { id: 2, title: "넷플릭스", amount: 13500, detail: "넷플릭스 | 체크카드", icon: "image/netflix.png" },
+      { id: 3, title: "배달의 민족", amount: 22000, detail: "페페로니 피자 P 세트 | 카카오페이", icon: "image/bmin.png" },
+      { id: 4, title: "배달의 민족", amount: 12000, detail: "야식 떡볶이 세트 | 카카오페이", icon: "image/bmin.png" },
+      { id: 5, title: "메가커피", amount: 2800, detail: "디카페인 라떼 | 카카오뱅크", icon: "image/mgc.png" },
+      { id: 6, title: "넷플릭스", amount: 9500, detail: "넷플릭스 모바일 | 체크카드", icon: "image/netflix.png" },
+    ];
+
+    const formatAmount = (n) =>
+      "-" + n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
+
+    // ---------- URL 파라미터에서 평가 대상 리스트 읽기 ----------
+    const params = new URLSearchParams(window.location.search);
+    const listParam = params.get("list");
+    const itemParam = params.get("item");
+
+    let indicesToJudge = [];
+
+    if (listParam) {
+      indicesToJudge = listParam
+        .split(",")
+        .map((v) => parseInt(v, 10))
+        .filter((v) => !Number.isNaN(v) && v >= 0 && v < expenses.length);
+    }
+
+    if (indicesToJudge.length === 0 && itemParam !== null) {
+      const idx = parseInt(itemParam, 10);
+      if (!Number.isNaN(idx) && idx >= 0 && idx < expenses.length) {
+        indicesToJudge = [idx];
+      }
+    }
+
+    if (indicesToJudge.length === 0) {
+      // 혹시 파라미터 없으면 전체 평가
+      indicesToJudge = expenses.map((_, i) => i);
+    }
+
+    const cardEl = document.getElementById("evaluate-card");
+    const iconEl = document.getElementById("expense-icon");
+    const titleEl = document.getElementById("expense-title");
+    const amountEl = document.getElementById("expense-amount");
+    const dotsEl = document.getElementById("dots");
+    const thumbRowEl = document.querySelector(".thumb-row");
+    const questionEl = document.getElementById("question-text");
+
+    const tutorialEl = document.getElementById("tutorial-overlay");
+    const tutorialBtn = document.getElementById("tutorial-start-btn");
+    let tutorialVisible = true;
+
+    tutorialBtn.addEventListener("click", () => {
+      tutorialVisible = false;
+      tutorialEl.classList.add("hidden");
+    });
+
+    let currentPos = 0;
+    const results = []; // { expenseIndex, decision: 'satisfied' | 'regret' | 'hold' }
+
+    function renderDots() {
+      dotsEl.innerHTML = "";
+      indicesToJudge.forEach((_, i) => {
+        const dot = document.createElement("span");
+        dot.className = "dot" + (i === currentPos ? " active" : "");
+        dotsEl.appendChild(dot);
+      });
+    }
+
+    function showCurrentExpense() {
+      const expenseIndex = indicesToJudge[currentPos];
+      const exp = expenses[expenseIndex];
+
+      iconEl.src = exp.icon;
+      iconEl.alt = exp.title + " 아이콘";
+      titleEl.textContent = exp.title;
+      amountEl.textContent = formatAmount(exp.amount);
+
+      cardEl.style.transform = "translate(0, 0)";
+      cardEl.style.opacity = "1";
+      renderDots();
+    }
+
+    function finishAll() {
+      cardEl.classList.add("hidden");
+      thumbRowEl.classList.add("hidden");
+      dotsEl.classList.add("hidden");
+
+      // 씨앗 말풍선 문구 변경
+      questionEl.textContent = "평가를 완료했습니다!";
+
+      console.log("swipe results:", results);
+
+      // 잠깐 보여준 뒤 홈(index.html)으로 이동
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1500);
+    }
+
+    function goNext(decision) {
+      const expenseIndex = indicesToJudge[currentPos];
+      results.push({ expenseIndex, decision });
+
+      currentPos += 1;
+      if (currentPos >= indicesToJudge.length) {
+        finishAll();
+        return;
+      }
+
+      dragDirection = null;
+      cardEl.classList.remove("transition");
+      cardEl.style.transform = "translate(0, 0)";
+      cardEl.style.opacity = "1";
+      showCurrentExpense();
+    }
+
+    // ---------- 스와이프 제스처 처리 ----------
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let dragDirection = null; // 'horizontal' | 'vertical' | null
+
+    const THRESHOLD_X = 80; // 좌우 스와이프 최소 거리
+    const THRESHOLD_Y = 40; // 아래 스와이프 최소 거리
+    const MAX_DIST = 160;   // 흐려지는 기준 거리
+
+    function pointerDown(e) {
+      if (tutorialVisible) return;
+
+      dragging = true;
+      dragDirection = null;
+      cardEl.classList.remove("transition");
+
+      const point = e.touches ? e.touches[0] : e;
+      startX = point.clientX;
+      startY = point.clientY;
+      currentX = 0;
+      currentY = 0;
+    }
+
+    function pointerMove(e) {
+      if (!dragging || tutorialVisible) return;
+      const point = e.touches ? e.touches[0] : e;
+      const dx = point.clientX - startX;
+      const dy = point.clientY - startY;
+
+      if (!dragDirection) {
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+        if (absX > 6 || absY > 6) {
+          if (absX > absY) {
+            dragDirection = "horizontal";
+          } else {
+            if (dy > 0) {
+              dragDirection = "vertical";
+            } else {
+              return; // 위로는 막기
+            }
+          }
+        } else {
+          return;
+        }
+      }
+
+      let tx = 0;
+      let ty = 0;
+      let dist = 0;
+
+      if (dragDirection === "horizontal") {
+        tx = dx;
+        ty = 0;
+        dist = Math.min(MAX_DIST, Math.abs(tx));
+      } else if (dragDirection === "vertical") {
+        if (dy < 0) {
+          ty = 0;
+          dist = 0;
+        } else {
+          ty = dy;
+          tx = 0;
+          dist = Math.min(MAX_DIST, Math.abs(ty));
+        }
+      }
+
+      const norm = dist / MAX_DIST;
+      const opacity = 1 - norm * 0.6;
+
+      cardEl.style.transform = `translate(${tx}px, ${ty}px)`;
+      cardEl.style.opacity = String(opacity);
+
+      currentX = tx;
+      currentY = ty;
+
+      e.preventDefault();
+    }
+
+    function pointerUp() {
+      if (!dragging || tutorialVisible) return;
+      dragging = false;
+      cardEl.classList.add("transition");
+
+      const absX = Math.abs(currentX);
+      const absY = Math.abs(currentY);
+
+      let decision = null;
+      let offScreenTransform = "translate(0, 0)";
+
+      if (dragDirection === "horizontal" && absX > THRESHOLD_X) {
+        if (currentX < 0) {
+          decision = "satisfied";
+          offScreenTransform = "translate(-420px, 0)";
+        } else {
+          decision = "regret";
+          offScreenTransform = "translate(420px, 0)";
+        }
+      } else if (
+        dragDirection === "vertical" &&
+        absY > THRESHOLD_Y &&
+        currentY > 0
+      ) {
+        decision = "hold";
+        offScreenTransform = "translate(0, 420px)";
+      }
+
+      if (!decision) {
+        cardEl.style.transform = "translate(0, 0)";
+        cardEl.style.opacity = "1";
+        return;
+      }
+
+      cardEl.style.transform = offScreenTransform;
+      cardEl.style.opacity = "0";
+
+      setTimeout(() => {
+        goNext(decision);
+      }, 220);
+    }
+
+    cardEl.addEventListener("mousedown", pointerDown);
+    cardEl.addEventListener("touchstart", pointerDown, { passive: false });
+
+    window.addEventListener("mousemove", pointerMove);
+    window.addEventListener("touchmove", pointerMove, { passive: false });
+
+    window.addEventListener("mouseup", pointerUp);
+    window.addEventListener("touchend", pointerUp);
+
+    // ---------- "이 소비는 어땠나요?" 타이핑 효과 ----------
+    const questionMessage = "이 소비는 어땠나요?";
+    let qIndex = 0;
+
+    function typeQuestion() {
+      if (qIndex <= questionMessage.length) {
+        questionEl.textContent = questionMessage.slice(0, qIndex);
+        qIndex++;
+        setTimeout(typeQuestion, 60);
+      }
+    }
+
+    // 초기 렌더
+    showCurrentExpense();
+    typeQuestion();
+  </script>
+</body>
+</html>
