@@ -239,7 +239,7 @@ body {
 }
 
 .action-label {
-  font-size: 11px; /* 기존 13px -> 11px로 수정 */
+  font-size: 13px;
   font-weight: 700;
   color: #111827;
   white-space: nowrap;
@@ -353,4 +353,212 @@ body {
   text-align: center;
   font-size: 12px;
   color: #9ca3af;
+  cursor: pointer;
+}
+
+/* ---------- 우측 상단 메뉴(삼선) 오버레이 ---------- */
+
+/* ---------- 우측 상단 메뉴(삼선) 오른쪽 사이드 패널 ---------- */
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35); /* 살짝 어두운 배경 */
+  display: none;                       /* 기본은 숨김 */
+  justify-content: flex-end;           /* 오른쪽 끝에 붙이기 */
+  align-items: stretch;                /* 세로 전체 채우기 */
+  z-index: 999;
+}
+
+.menu-overlay.active {
+  display: flex;
+}
+
+/* 오른쪽에서 슬라이드 인 되는 패널 */
+.menu-sheet {
+  width: 80%;               /* 화면의 80% 정도 → 너무 크면 70%로 줄여도 됨 */
+  max-width: 360px;         /* 태블릿에서 너무 넓어지지 않게 */
+  height: 100%;             /* 세로 전체 */
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 24px 0 0 24px; /* 왼쪽만 둥글게 */
+  padding: 18px 16px 16px;
+  box-shadow: -12px 0 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+
+  /* 오른쪽 밖에서 → 안으로 슬라이드 */
+  transform: translateX(100%);
+  transition: transform 0.25s ease-out;
+}
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: none;                 /* 기본은 숨김 */
+  justify-content: flex-end;     /* 오른쪽에 패널 붙임 */
+  align-items: stretch;          /* 세로 전체 */
+  z-index: 999;
+}
+
+.menu-overlay.active {
+  display: flex;
+}
+
+/* 오른쪽에서 슬라이드 인 되는 패널 */
+.menu-sheet {
+  /* 폰 기준: 화면의 약 60%만 가리는 오른쪽 패널 */
+  width: 60%;          /* 반보다 조금 넓게, 딱 반으로 하고 싶으면 50%로 바꿔도 됨 */
+  max-width: 360px;    /* 너무 넓어지지 않게 상한 */
+  height: 100%;        /* 세로는 전체 */
+
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 24px 0 0 24px; /* 왼쪽 모서리만 둥글게 */
+  padding: 18px 16px 16px;
+  box-shadow: -12px 0 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+
+  /* 오른쪽 밖에서 → 안으로 슬라이드 */
+  transform: translateX(100%);
+  transition: transform 0.25s ease-out;
+}
+
+/* overlay에 active가 붙으면 패널이 안으로 들어옴 */
+.menu-overlay.active .menu-sheet {
+  transform: translateX(0);
+}
+
+/* 태블릿 / PC 같이 화면 넓을 땐 오른쪽 일부만 차지 */
+@media (min-width: 720px) {
+  .menu-sheet {
+    width: 70%;          /* 화면의 70%만 사용 */
+    max-width: 420px;
+    border-radius: 24px 0 0 24px;  /* 왼쪽 모서리만 둥글게 */
+  }
+}
+
+/* 상단 제목 + 닫기 버튼 */
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.menu-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.menu-close-btn {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #4b5563;
+  background-color: #e5e7eb;
+}
+
+/* 1단계: 메뉴 목록 (나의 목표 / 로그아웃 버튼들) */
+.menu-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.menu-item {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  background: #f9fafb;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: #eef2ff;
+}
+
+.menu-item.danger {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.menu-item.danger:hover {
+  background: #fee2e2;
+}
+
+/* 2단계: 나의 목표 작성 화면 */
+.menu-goal {
+  display: none; /* "나의 목표" 누를 때만 보이게 */
+  margin-top: 8px;
+}
+
+.menu-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 6px;
+}
+
+.goal-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  resize: vertical;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #f9fafb;
+}
+
+.goal-textarea:focus {
+  border-color: #34d399;
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.3);
+  background: #ffffff;
+}
+
+.menu-buttons-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.menu-btn {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.menu-btn.secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.menu-btn.secondary:active {
+  background: #d1d5db;
+}
+
+.menu-btn.save {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.menu-btn.save:active {
+  background: #059669;
 }
