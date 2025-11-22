@@ -5,11 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>가계부 캐릭터 앱</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    body { display: none; }
+  </style>
 </head>
 <body>
   <div class="page">
     <!-- 헤더 -->
-    <header class="app-header">
+    <header class="app-header" style="margin-top: 48px;">
       <button class="icon-btn" aria-label="알림">
         <img src="image/alarm.png" alt="알림 아이콘" />
       </button>
@@ -83,21 +86,20 @@
     <!-- 가계부 / 후회도 / 소비 평가 -->
     <section class="actions-card">
       <div class="actions-row">
-        <button class="action-item">
+        <button class="action-item" onclick="location.href='calendar.html'">
           <img src="image/calendar.png" alt="가계부 아이콘" />
           <span class="action-label">가계부</span>
         </button>
 
-        <button class="action-item">
+        <button class="action-item" onclick="location.href='regretRate.html'">
           <img src="image/sad.png" alt="후회도 아이콘" />
           <span class="action-label">후회도</span>
         </button>
-
-        <!-- 🔹 여기만 수정: id 추가해서 swipe.html로 이동시키기 -->
         <button class="action-item" id="review-button">
           <img src="image/good.png" alt="소비 평가 아이콘" />
           <span class="action-label">소비 평가</span>
         </button>
+
       </div>
     </section>
 
@@ -110,101 +112,146 @@
   </div>
 
   <script>
-    // --------------------- 지출 내역 더미 데이터 ---------------------
-    const expenses = [
-      {
-        icon: "M",
-        iconSrc: "image/mgc.png",      // 🔹 메가커피 이미지
-        title: "메가커피",
-        subtitle: "메가커피 · 카카오뱅크",
-        tag: "카페",
-        amount: 3900,
-      },
-      {
-        icon: "N",
-        iconSrc: "image/netflix.png",  // 🔹 넷플릭스 이미지
-        title: "넷플릭스",
-        subtitle: "넷플릭스 · 카카오페이",
-        tag: "구독",
-        amount: 11700,
-      },
-      {
-        icon: "B",
-        iconSrc: "image/bmin.png",     // 🔹 배민 이미지
-        title: "배달의 민족",
-        subtitle: "페페로니 피자 P 세트",
-        tag: "배달",
-        amount: 14000,
-      },
-    ];
+    const API_BASE_URL = 'https://x-thon.nexcode.kr:16010';
 
     const historyListEl = document.getElementById("history-list");
     const todayAmountEl = document.getElementById("today-amount");
 
     const formatCurrency = (n) =>
       n.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) + "원";
+      
+    async function checkLoginStatus() {
+        try {
+            // credentials: 'include' 필수 (쿠키 전송)
+            const response = await fetch(`${API_BASE_URL}/api/status`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const data = await response.json();
 
-    // 렌더링 + 합계 계산
-    let total = 0;
-    expenses.forEach((item) => {
-      total += item.amount;
-
-      const row = document.createElement("div");
-      row.className = "history-item";
-
-      row.innerHTML = `
-        <div class="history-left">
-          <div class="history-icon">
-            <img src="${item.iconSrc}" alt="${item.title} 아이콘" />
-          </div>
-          <div class="history-text">
-            <div class="history-title-row">
-              <span class="history-merchant">${item.title}</span>
-              <span class="history-tag">${item.tag}</span>
-            </div>
-            <div class="history-sub">${item.subtitle}</div>
-          </div>
-        </div>
-        <div class="history-right">
-          <span class="history-amount">-${formatCurrency(item.amount)}</span>
-        </div>
-      `;
-
-      historyListEl.appendChild(row);
-    });
-
-    // 오늘의 지출 = 합계
-    todayAmountEl.textContent = formatCurrency(total);
-
-    // --------------------- 진행률 게이지 (원형 링) ---------------------
-    const circle = document.getElementById("progress-circle");
-    const radius = circle.r.baseVal.value;
-    const circumference = 2 * Math.PI * radius;
-
-    circle.style.strokeDasharray = `${circumference}`;
-    circle.style.strokeDashoffset = `${circumference}`;
-
-    // 예시: 오늘 예산 50,000원 기준으로 진행률 계산
-    const DAILY_BUDGET = 50000;
-    const progress = Math.max(
-      0,
-      Math.min(100, Math.round((total / DAILY_BUDGET) * 100))
-    );
-
-    function setProgress(percent) {
-      const offset = circumference - (percent / 100) * circumference;
-      circle.style.strokeDashoffset = offset;
+            if (data.logged_in === true) {
+                console.log("로그인 확인됨. User ID:", data.user_id);
+                localStorage.setItem('user_id', data.user_id);
+                
+                if (data.nickname) {
+                    localStorage.setItem('nickname', data.nickname);
+                    const todayLabel = document.querySelector('.today-label');
+                    if (todayLabel) {
+                        todayLabel.textContent = `${data.nickname}님의 오늘의 지출`;
+                    }
+                }
+                
+                document.body.style.display = 'block';
+                init(data.user_id); 
+            } else {
+                console.warn("비로그인 상태. 리다이렉트...");
+                window.location.href = "login.html";
+            }
+        } catch (error) {
+            console.error("서버 연결 실패:", error);
+            window.location.href = "login.html";
+        }
     }
 
-    // 살짝 딜레이 두고 애니메이션
-    setTimeout(() => setProgress(progress), 300);
 
-    // --------------------- 새로고침 버튼 ---------------------
+	async function loadExpenses(userId) {
+		try {
+	      const response = await fetch(`${API_BASE_URL}/api/expenses`, {
+	        method: "POST",
+	        credentials: "include", //  쿠키 포함 필수
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ 
+          	  user_id: userId,
+              date: new Date().toISOString().split('T')[0] 
+          })
+        });
+	      const result = await response.json();
+	
+	      // 렌더링 + 합계 계산
+	      let total = 0;
+	      
+	      const expensesList = result.data || [];
+
+        historyListEl.innerHTML = ""; // 리스트 초기화
+
+        if (expensesList.length === 0) {
+            historyListEl.innerHTML = "<div style='padding:20px; text-align:center; color:#888;'>오늘의 지출 내역이 없습니다.</div>";
+        }
+	      
+	      expensesList.forEach((item) => {
+	        total += item.price;
+	
+	        const row = document.createElement("div");
+	        row.className = "history-item";
+	        
+	        let iconSrc = 'image/bmin.png'
+	
+	        row.innerHTML = `
+	          <div class="history-left">
+	            <div class="history-icon">
+	              <img src="${iconSrc}" alt="${item.merchant} 아이콘" />
+	            </div>
+	            <div class="history-text">
+	              <div class="history-title-row">
+	                <span class="history-merchant">${item.merchant}</span>
+	                <span class="history-tag">${item.category}</span>
+	              </div>
+	              <div class="history-sub">${item.price}</div>
+	            </div>
+	          </div>
+	          <div class="history-right">
+	            <span class="history-amount">-${formatCurrency(item.price)}</span>
+	          </div>
+	        `;
+	
+	        historyListEl.appendChild(row);
+	      });
+	      return total
+	    } catch (error) {
+	      console.error("지출 내역을 불러오는 중 오류 발생:", error);
+	      return -1
+	    }
+	}
+
+	async function init(userId) {
+	    const totalAmount = await loadExpenses(userId);
+
+	    // 오늘의 지출 = 합계
+	    todayAmountEl.textContent = formatCurrency(totalAmount);
+	
+	    // --------------------- 진행률 게이지 (원형 링) ---------------------
+	    const circle = document.getElementById("progress-circle");
+	    const radius = circle.r.baseVal.value;
+	    const circumference = 2 * Math.PI * radius;
+	
+	    circle.style.strokeDasharray = `${circumference}`;
+	    circle.style.strokeDashoffset = `${circumference}`;
+	
+	    // 예시: 오늘 예산 50,000원 기준으로 진행률 계산
+	    const DAILY_BUDGET = 50000;
+	    const progress = Math.max(
+	      0,
+	      Math.min(100, Math.round((totalAmount / DAILY_BUDGET) * 100))
+	    );
+
+	    function setProgress(percent) {
+	      const offset = circumference - (percent / 100) * circumference;
+	      circle.style.strokeDashoffset = offset;
+	    }
+	
+	    // 살짝 딜레이 두고 애니메이션
+	    setTimeout(() => setProgress(progress), 300);
+	}
+	
+	window.onload = checkLoginStatus;
+
     document
       .getElementById("refresh-btn")
       .addEventListener("click", () => location.reload());
 
-    // 🔹 소비 평가 버튼 → swipe.html 이동
+    // 소비 평가 버튼 → swipe.html 이동
     document
       .getElementById("review-button")
       .addEventListener("click", () => {
@@ -213,3 +260,4 @@
   </script>
 </body>
 </html>
+

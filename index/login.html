@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <meta charset="UTF-8" />
   <title>Buy-bye – 첫 가입</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!--  Kakao SDK 스크립트는 이제 필요 없어서 제거했습니다. -->
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       display: flex;
@@ -17,6 +25,7 @@
       background: #000;
       font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
+
     .app-frame {
       width: 100vw;
       max-width: 1080px;
@@ -43,20 +52,22 @@
     /* .logo-text 스타일은 더 이상 쓰지 않으므로 지워도 됩니다. */
 
     .tree {
-	    /* 1. 크기 설정 (아까 키운 그대로) */
-		width: 75%;
-		max-width: 500px;
-		height: auto;
-		filter: drop-shadow(0 18px 28px rgba(0,0,0,0.18));
+      /* 1. 크기 설정 (아까 키운 그대로) */
+      width: 75%;
+      max-width: 500px;
+      height: auto;
+      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.18));
 
-		/* 2. 위치 설정 (여기가 중요합니다!) */
-		position: relative;  /* "내 위치를 기준으로 움직이겠다"는 뜻 */
-		top: 50px;           /* 원래 있던 자리에서 아래로 50px만큼만 혼자 내려감 */
-	
-		  /* 3. 마진 초기화 */
-		  /* 아까 늘렸던 margin-top을 지우거나 줄여야 전체가 안 밀립니다 */
-		margin-top: 20px;    
-		margin-bottom: 48px;
+      /* 2. 위치 설정 (여기가 중요합니다!) */
+      position: relative;
+      /* "내 위치를 기준으로 움직이겠다"는 뜻 */
+      top: 50px;
+      /* 원래 있던 자리에서 아래로 50px만큼만 혼자 내려감 */
+
+      /* 3. 마진 초기화 */
+      /* 아까 늘렸던 margin-top을 지우거나 줄여야 전체가 안 밀립니다 */
+      margin-top: 20px;
+      margin-bottom: 48px;
     }
 
     .headline {
@@ -68,16 +79,21 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px; /* 이미지와 텍스트 사이 간격 */
+      gap: 6px;
+      /* 이미지와 텍스트 사이 간격 */
       /* ▼ 위로 올리기 위한 코드 추가 ▼ */
-	  position: relative;  /* 위치 이동 활성화 */
-      top: -50px;          /* 위로 30px 올라감 (숫자를 조절하세요) */
+      position: relative;
+      /* 위치 이동 활성화 */
+      top: -50px;
+      /* 위로 30px 올라감 (숫자를 조절하세요) */
     }
 
     /* 새로 추가된 문구 중간 로고 스타일 */
     .headline-logo {
-      height: 6.0em; /* 현재 폰트 크기의 1.5배 높이로 설정 */
-      width: auto;   /* 비율 유지 */
+      height: 6.0em;
+      /* 현재 폰트 크기의 1.5배 높이로 설정 */
+      width: auto;
+      /* 비율 유지 */
       /* 필요하다면 미세 위치 조정 */
       /* position: relative; top: 2px; */
     }
@@ -101,36 +117,62 @@
       width: 100%;
       max-width: 500px;
       height: auto;
-      position: relative;  /* 위치 이동 활성화 */
-      top: -30px;     /* 위로 30px 올라감 (숫자를 조절하세요) */
+      position: relative;
+      /* 위치 이동 활성화 */
+      top: -30px;
+      /* 위로 30px 올라감 (숫자를 조절하세요) */
       border-radius: 20px;
     }
   </style>
+
+  <script>
+    //  [핵심 수정 사항]
+    // 복잡한 fetch나 SDK 초기화 없이, 백엔드 주소로 바로 이동합니다.
+    // 이 주소는 사용자님의 Flask 서버 주소입니다.
+    const BACKEND_AUTH_URL = "https://x-thon.nexcode.kr:16010/kakao/authorize";
+
+    function kakaoLogin() {
+      // 버튼을 누르면 백엔드 서버가 카카오 로그인 페이지로 보내줍니다.
+      window.location.href = BACKEND_AUTH_URL;
+    }
+
+    window.onload = function () {
+      // URL에 있는 파라미터를 확인해서 로그인 성공/실패 메시지를 띄웁니다.
+      const urlParams = new URLSearchParams(window.location.search);
+
+      if (urlParams.get('login') === 'success') {
+        console.log("로그인 성공!");
+        // 필요하다면 여기서 메인 페이지로 이동하는 로직 등을 추가할 수 있습니다.
+      } else if (urlParams.get('login') === 'fail') {
+        alert("로그인에 실패했습니다.");
+      }
+
+      // 버튼에 클릭 이벤트 연결
+      document.querySelector('.kakao-btn').onclick = kakaoLogin;
+    };
+  </script>
+
 </head>
 
 <body>
   <div class="app-frame">
     <div class="app-content">
 
-      <img class="tree"
-           src="./image/Lv5smile.png"
-           alt="tree" />
+      <img class="tree" src="./image/Lv5smile.png" alt="tree" />
 
       <div class="headline">
-        <img src="./image/Buy-Bye.png" 
-             alt="Buy-bye Logo" 
-             class="headline-logo">
+        <img src="./image/Buy-Bye.png" alt="Buy-bye Logo" class="headline-logo">
         <span>가 처음이신가요?</span>
       </div>
 
       <div class="kakao-wrap">
         <button class="kakao-btn">
-          <img src="./image/kakao.jpg"
-               alt="카카오 로그인" />
+          <img src="./image/kakao.jpg" alt="카카오 로그인" />
         </button>
       </div>
 
     </div>
   </div>
 </body>
+
 </html>

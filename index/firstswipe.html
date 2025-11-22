@@ -6,6 +6,13 @@
   <title>소비 평가 - 첫 화면</title>
   <!-- 이 파일은 firstswipe.css를 사용 -->
   <link rel="stylesheet" href="firstswipe.css">
+
+  <!-- 🔹 이 페이지 전체에 아래쪽 여백 48px 추가 -->
+  <style>
+    .page {
+      padding-bottom: 48px !important;
+    }
+  </style>
 </head>
 <body>
   <div class="page">
@@ -154,7 +161,7 @@
       const first = indicesArray[0];
       const listParam = indicesArray.join(",");
 
-      // 평가 화면으로 이동 (기존 swipe-evaluate.html 재사용)
+      // 평가 화면으로 이동
       window.location.href = `firstchoose.html?item=${first}&list=${listParam}`;
      });
 

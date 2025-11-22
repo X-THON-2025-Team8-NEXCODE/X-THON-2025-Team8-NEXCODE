@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buy-bye AI 소비 분석</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- 폰트: 프리텐다드 -->
+  <link
+    rel="stylesheet"
+    as="style"
+    crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+  />
+
+  <!-- 이 페이지 전용 CSS -->
+  <link rel="stylesheet" href="aiRecommand.css" />
+</head>
+<body>
+
+  <div class="app-frame">
+    
+    <!-- 1. 헤더 -->
+    <div class="header-area">
+      <button class="home-btn" onclick="location.href='index.html'">
+        <img src="./image/home.png" alt="홈">
+        <span class="home-text">홈 화면</span>
+      </button>
+    </div>
+
+    <!-- 2. 캐릭터 영역 (텍스트 없이 씨앗만) -->
+    <div class="character-area">
+      <img src="./image/seed.png" class="char-img" id="mainCharImg" alt="캐릭터">
+    </div>
+
+    <!-- 3. 말풍선 (swipe와 구조 맞춤 + 꼬리 위에서 seed 방향) -->
+    <div class="speech">
+      <div class="speech-bubble">
+        <p id="typing-text" class="typing-text"></p>
+      </div>
+    </div>
+
+    <!-- 4. 콘텐츠 카드 -->
+    <div class="card-box">
+      
+      <!-- A. 입력 화면 -->
+      <div id="inputScreen">
+        <div class="input-group">
+          <label class="input-label">어떤 물건인가요?</label>
+          <input type="text" class="custom-input" id="itemName" placeholder="예: 텀블러, 운동화">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">가격은 얼마인가요?</label>
+          <input type="number" class="custom-input" id="itemPrice" placeholder="숫자만 입력 (원)">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">카테고리</label>
+          <select class="custom-select" id="itemCategory">
+            <option value="식비">식비 (카페/배달)</option>
+            <option value="쇼핑">쇼핑 (옷/잡화)</option>
+            <option value="취미">취미/여가</option>
+            <option value="구독">정기 구독</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">현재 시간</label>
+          <input type="text" class="custom-input" id="currentTime" readonly>
+        </div>
+
+        <button class="analyze-btn" onclick="startAnalysis()">
+          ✨ AI에게 물어보기
+        </button>
+      </div>
+
+      <!-- B. 로딩 화면 -->
+      <div id="loadingScreen" class="loading-screen">
+        <img src="./image/seed.png" class="spinner-img" alt="로딩">
+        <div class="loading-text">
+          AI가 소비 패턴을<br>열심히 분석하고 있어요...
+        </div>
+      </div>
+
+      <!-- C. 결과 화면 -->
+      <div id="resultScreen" class="result-screen">
+        <div class="verdict-badge bg-green" id="verdictBadge">
+          <span class="verdict-icon">🟢</span>
+          <span id="verdictText">구매 추천</span>
+        </div>
+
+        <div class="risk-area">
+          <div class="risk-label-row">
+            <span>과소비 위험도</span>
+            <span class="risk-score" id="riskScoreText">15점</span>
+          </div>
+          <div class="risk-bar-bg">
+            <div class="risk-bar-fill" id="riskBar"></div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: flex-start;">
+          <div class="advice-bubble" id="aiMessage">
+            "지난달 식비 지출이 적어서 이정도는 괜찮아요! <br>대신 이번 주 커피는 이걸로 끝내기로 약속해요~"
+          </div>
+        </div>
+
+        <button class="retry-btn" onclick="resetPage()">다른 물건도 물어보기</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // === 1. 현재 시간 자동 입력 ===
+    const timeInput = document.getElementById('currentTime');
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    timeInput.value = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${hours}:${minutes}`;
+
+    // === 2. 말풍선 타이핑 효과 (swipe와 동일 패턴) ===
+    const typingTarget = document.getElementById("typing-text");
+    const typingMessage = "AI가 재호님의 소비 고민을 들어줄게요.";
+    let typingIndex = 0;
+
+    function typeStep() {
+      if (typingIndex <= typingMessage.length) {
+        typingTarget.textContent = typingMessage.slice(0, typingIndex);
+        typingIndex++;
+        setTimeout(typeStep, 60); // 속도
+      }
+    }
+
+    // 페이지 진입 시 한 번 실행
+    typeStep();
+
+    // === 3. 분석 시작 ===
+    function startAnalysis() {
+      const name = document.getElementById('itemName').value;
+      const price = document.getElementById('itemPrice').value;
+
+      if (!name || !price) {
+        alert("물건 이름과 가격을 모두 입력해주세요!");
+        return;
+      }
+
+      document.getElementById('inputScreen').style.display = 'none';
+      document.getElementById('loadingScreen').style.display = 'flex';
+
+      setTimeout(() => {
+        showResult(price);
+      }, 2500);
+    }
+
+    // === 4. 결과 보여주기 ===
+    function showResult(price) {
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('resultScreen').style.display = 'flex';
+
+      const verdictBadge = document.getElementById('verdictBadge');
+      const verdictText  = document.getElementById('verdictText');
+      const verdictIcon  = document.querySelector('.verdict-icon');
+      const riskBar      = document.getElementById('riskBar');
+      const riskText     = document.getElementById('riskScoreText');
+      const message      = document.getElementById('aiMessage');
+
+      let score = 0;
+      const p = Number(price);
+
+      if (p > 100000) {
+        verdictBadge.className = 'verdict-badge bg-red';
+        verdictText.innerText  = '강력 비추천';
+        verdictIcon.innerText  = '🔴';
+        score = 95;
+        riskBar.style.background = '#e74c3c';
+        message.innerHTML = "잠깐! ✋ 이번 달 예산이 거의 바닥났어요.<br>지금 이 소비는 위험해요. 하루만 더 고민해보는 건 어때요?";
+      
+      } else if (p > 30000) {
+        verdictBadge.className = 'verdict-badge bg-yellow';
+        verdictText.innerText  = '잠깐 고민!';
+        verdictIcon.innerText  = '🟡';
+        score = 60;
+        riskBar.style.background = '#f1c40f';
+        message.innerHTML = "나쁘진 않지만, 최근 비슷한 카테고리 지출이 늘고 있어요.<br>꼭 필요한지 3번만 더 생각해볼까요?";
+      
+      } else {
+        verdictBadge.className = 'verdict-badge bg-green';
+        verdictText.innerText  = '구매 추천';
+        verdictIcon.innerText  = '🟢';
+        score = 15;
+        riskBar.style.background = '#2ecc71';
+        message.innerHTML = "훌륭한 소비예요! ✨<br>당신의 절제된 소비 습관 덕분에 이정도는 충분히 즐겨도 됩니다!";
+      }
+
+      setTimeout(() => {
+        riskBar.style.width = score + "%";
+        riskText.innerText = score + "점";
+      }, 100);
+    }
+
+    // === 5. 다시 하기 ===
+    function resetPage() {
+      location.reload();
+    }
+  </script>
+  <script src="characterManager.js"></script>
+</body>
+</html>

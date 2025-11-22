@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buy-bye 소비 상세</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- 폰트 -->
+  <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <style>
+    /* === 1. 기본 설정 === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: "Pretendard", -apple-system, sans-serif;
+      background-image: url("./image/background.png"); 
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .app-frame {
+      width: 100vw;
+      max-width: 480px;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    /* === 2. 상단 헤더 === */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 10px;
+    }
+    .icon-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+    .icon-img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+    }
+    .icon-text {
+      font-size: 12px;
+      color: #555;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    /* === 3. 캐릭터 === */
+    .character-section {
+      text-align: center;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+    .char-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+    }
+
+    /* === 말풍선 === */
+    .speech {
+      display: flex;
+      justify-content: center;
+      padding: 0 10px;
+      margin-bottom: 16px;
+    }
+
+    .speech-bubble {
+      position: relative;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 10px 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .speech-bubble::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 10px 10px 10px;
+      border-style: solid;
+      border-color: transparent transparent #ffffff transparent;
+      filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.05));
+    }
+
+    .typing-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #333;
+      line-height: 1.5;
+      min-height: 1.2em;
+      white-space: pre-line;
+    }
+
+    /* === 4. 메인 카드 === */
+    .detail-card {
+      background: #ffffff;
+      border-radius: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      padding: 25px 20px;
+      flex: 1;
+      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .card-date {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #000;
+      margin-bottom: 20px;
+    }
+
+    .expense-list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    .expense-list::-webkit-scrollbar { width: 4px; }
+    .expense-list::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
+
+    .expense-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 10px;
+      border-radius: 15px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 2px solid transparent;
+    }
+
+    .expense-item.selected {
+      background-color: #f0fdf4;
+      border-color: #4cd964;
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: #eee;
+      object-fit: cover;
+    }
+    .item-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .item-price {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #000;
+    }
+    .item-desc {
+      font-size: 0.85rem;
+      color: #666;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .status-icon {
+      width: 32px;
+      height: 32px;
+      opacity: 0.8;
+    }
+
+    /* === 5. 하단 버튼 영역 === */
+    .edit-area {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 15px;
+    }
+    
+    .arrow-icon {
+      width: 24px;
+      opacity: 0.3;
+      margin-bottom: 10px;
+    }
+
+    .edit-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #555;
+      cursor: pointer;
+    }
+    .edit-btn img {
+      width: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-frame">
+    <!-- 상단 아이콘들 -->
+    <div class="top-bar">
+      <button class="icon-btn" onclick="location.href='index.html'">
+        <img src="./image/home.png" class="icon-img" alt="홈">
+        <span class="icon-text">홈 화면</span>
+      </button>
+      
+      <button class="icon-btn" onclick="location.href='calendar.html'">
+        <img src="./image/calendar.png" class="icon-img" alt="캘린더">
+        <span class="icon-text">캘린더</span>
+      </button>
+    </div>
+
+    <!-- 캐릭터 -->
+    <div class="character-section">
+      <img src="./image/seed.png" class="char-img" alt="캐릭터">
+    </div>
+
+    <!-- 말풍선 -->
+    <div class="speech">
+      <div class="speech-bubble">
+        <p id="typing-text" class="typing-text"></p>
+      </div>
+    </div>
+
+    <!-- 상세 카드 -->
+    <div class="detail-card">
+      <div class="card-date">2025년 11월 1일</div>
+
+      <div class="expense-list" id="expenseList">
+        <!-- JS에서 렌더링 -->
+      </div>
+
+      <div class="edit-area">
+        <img src="https://cdn-icons-png.flaticon.com/512/2985/2985150.png" class="arrow-icon" alt="arrow">
+        
+        <button class="edit-btn" onclick="goToEvaluationPage()">
+          <img src="./image/good.png" alt="edit">
+          소비 평가 수정
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 1. URL에서 날짜 파라미터 읽기
+    const urlParams   = new URLSearchParams(window.location.search);
+    const yearParam   = urlParams.get('year');
+    const monthParam  = urlParams.get('month');
+    const dayParam    = urlParams.get('day');
+
+    // 말풍선 문구 기본값
+    let messageText = "오늘의 소비 내역입니다.";
+
+    if (yearParam && monthParam && dayParam) {
+      messageText = `${monthParam}월 ${dayParam}일의 소비 내역입니다.`;
+
+      const cardDateEl = document.querySelector('.card-date');
+      if (cardDateEl) {
+        cardDateEl.innerText = `${yearParam}년 ${monthParam}월 ${dayParam}일`;
+      }
+    }
+
+    // 2. 말풍선 타이핑 효과
+    const typingTarget = document.getElementById("typing-text");
+    let typingIndex = 0;
+
+    function typeStep() {
+      if (typingIndex <= messageText.length) {
+        typingTarget.textContent = messageText.slice(0, typingIndex);
+        typingIndex++;
+        setTimeout(typeStep, 60);
+      }
+    }
+
+    typeStep();
+
+    // 3. 하루 소비 내역 더미 데이터
+    let expenses = [
+      { id: 1, brand: 'Mega',    logo: 'https://cdn-icons-png.flaticon.com/512/7520/7520466.png', price: '-3,900원',  desc: '메가커피 | 카카오뱅크',      status: 'none' },
+      { id: 2, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이',      status: 'bad'  },
+      { id: 3, brand: 'Baemin',  logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png',   price: '-14,000원', desc: '배달의 민족 | 페페로니 피자', status: 'none' },
+      { id: 4, brand: 'Netflix', logo: 'https://cdn-icons-png.flaticon.com/512/5977/5977590.png', price: '-11,700원', desc: '넷플릭스 | 카카오페이',      status: 'bad'  },
+      { id: 5, brand: 'Baemin',  logo: 'https://cdn-icons-png.flaticon.com/512/900/900627.png',   price: '-14,000원', desc: '배달의 민족 | 치킨',          status: 'good' }
+    ];
+
+    let selectedIds = [];
+    const listContainer = document.getElementById('expenseList');
+
+    function renderList() {
+      listContainer.innerHTML = '';
+
+      expenses.forEach(item => {
+        let iconSrc = '';
+        if (item.status === 'good')      iconSrc = './image/greenTUp.png';
+        else if (item.status === 'bad') iconSrc = './image/redTDown.png';
+        else                            iconSrc = './image/postpone.png';
+
+        const div = document.createElement('div');
+        div.className = 'expense-item';
+        if (selectedIds.includes(item.id)) {
+          div.classList.add('selected');
+        }
+
+        div.innerHTML = `
+          <div class="item-left">
+            <img src="${item.logo}" class="brand-logo" alt="logo">
+            <div class="item-info">
+              <div class="item-price">${item.price}</div>
+              <div class="item-desc">${item.desc}</div>
+            </div>
+          </div>
+          <img src="${iconSrc}" class="status-icon" alt="status">
+        `;
+
+        div.onclick = () => toggleSelect(item.id);
+        listContainer.appendChild(div);
+      });
+    }
+
+    function toggleSelect(id) {
+      if (selectedIds.includes(id)) {
+        selectedIds = selectedIds.filter(sid => sid !== id);
+      } else {
+        selectedIds.push(id);
+      }
+      renderList();
+    }
+
+    function goToEvaluationPage() {
+      if (selectedIds.length === 0) {
+        alert("평가를 수정할 내역을 하나 이상 선택해주세요!");
+        return;
+      }
+
+      const idsParam = selectedIds.join(',');
+      location.href = `choose.html?ids=${idsParam}`;
+    }
+
+    renderList();
+  </script>
+</body>
+</html>

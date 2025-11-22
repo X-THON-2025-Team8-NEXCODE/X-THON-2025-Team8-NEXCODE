@@ -4,7 +4,7 @@
   padding: 0;
 }
 
-/* 🔹 전체 배경 */
+/* ߔ頬Ĭⴠ배경 */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR",
     system-ui, sans-serif;
@@ -59,7 +59,7 @@ body {
   display: block;
 }
 
-/* 🔹 오늘의 지출 블록 */
+/* ߔ頬褫꘬혠지출 블록 */
 .today-section {
   margin-top: 8px;
   margin-bottom: 20px;
@@ -131,7 +131,7 @@ body {
   color: #000000;
 }
 
-/* 🔹 프로그레스 링 전체 컨테이너 */
+/* ߔ頭䄫ᜪ縫Ȭꤠ링 전체 컨테이너 */
 .mascot-section {
   display: flex;
   justify-content: center;
@@ -217,7 +217,7 @@ body {
 .actions-row {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 4px;
 }
 
 .action-item {
@@ -232,19 +232,21 @@ body {
 }
 
 .action-item img {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   display: block;
 }
 
 .action-label {
-  font-size: 13px;
+  font-size: 11px; /* 기존 13px -> 11px로 수정 */
   font-weight: 700;
   color: #111827;
+  white-space: nowrap;
+  letter-spacing: -0.5px;
 }
 
-/* 🔹 지출 내역 카드 */
+/* ߔ頬瀬朠내역 카드 */
 .history-card {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 20px;
@@ -291,7 +293,7 @@ body {
   flex-shrink: 0;
 }
 
-/* 🔹 결제 내역 아이콘 안에 들어가는 이미지 스타일 */
+/* ߔ頪Ⱜܠ내역 아이콘 안에 들어가는 이미지 스타일 */
 .history-icon img {
   width: 100%;
   height: 100%;
